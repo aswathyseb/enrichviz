@@ -1,54 +1,34 @@
-# Installation 
+# Installation
 
-## Initialize pixi environment
+The usual install is in [README.md](README.md): clone the repository, then `pixi install` and `pixi run setup-annot`. This file is for rebuilding the environment from scratch and for packages that pixi cannot always install from conda.
+
+## Rebuild the pixi environment
+
+Only needed if you are not using the committed `pixi.toml` / `pixi.lock` (for example when starting a new project).
+
+```bash
 pixi init
-
-## Add the bioconda channel
 pixi workspace channel add bioconda
-
-## The platforms that the environment will support
 pixi project platform add osx-arm64 linux-64
+```
 
-## Activate the environment
+Then add the packages listed in `pixi.toml`, or copy that file and run `pixi install`.
 
-Activate the environment with the command:
+Activate the environment when you want an interactive prompt (`R`, `enrichviz` on `PATH`):
 
 ```bash
 pixi shell
 ```
 
-## Add packages
+## Annotation databases
+
+`bioconductor-go.db`, `bioconductor-org.hs.eg.db`, and `bioconductor-org.mm.eg.db` are stub packages. Pixi does not run conda post-link scripts, so `pixi install` does not unpack the R databases. From the repository root:
 
 ```bash
-pixi add \
-  r-optparse \
-  r-readr \
-  r-dplyr \
-  r-tibble \
-  r-tidyr \
-  r-stringr \
-  r-ggplot2 \
-  r-ggridges \
-  r-patchwork \
-  r-gprofiler2 \
-  r-complexupset \
-  r-ggrepel \
-  r-ggforce \
-  r-tidydr \
-  r-remotes \
-  r-msigdbr \
-  r-httpuv \
-  r-shiny \
-  bioconductor-fgsea \
-  bioconductor-complexheatmap \
-  bioconductor-go.db \
-  "bioconductor-org.hs.eg.db" \
-  "bioconductor-org.mm.eg.db"
+pixi run setup-annot
 ```
 
-## Download annotation databases
-
-`bioconductor-go.db`, `bioconductor-org.hs.eg.db`, and `bioconductor-org.mm.eg.db` are stub packages. Pixi does not run conda post-link scripts, so `pixi add` does not install the R packages. Download them into the pixi library:
+That runs `scripts/install-annot.sh`, which is equivalent to:
 
 ```bash
 pixi run bash -c 'export PREFIX="$CONDA_PREFIX"
@@ -59,7 +39,7 @@ installBiocDataPackage.sh "org.mm.eg.db-3.22.0"'
 
 ## Install simona and simplifyEnrichment
 
-`bioconductor-simona` has no `osx-arm64` conda build, so `pixi add bioconductor-simona` cannot be solved on Apple Silicon. `simplifyEnrichment` depends on `simona`.
+`enrichviz ora simplify` needs these packages. `bioconductor-simona` has no `osx-arm64` conda build, so `pixi add bioconductor-simona` cannot be solved on Apple Silicon. `simplifyEnrichment` depends on `simona`.
 
 On linux-64 or Intel macOS:
 
@@ -67,14 +47,8 @@ On linux-64 or Intel macOS:
 pixi add bioconductor-simona bioconductor-simplifyenrichment
 ```
 
-On Apple Silicon (`osx-arm64`): 
+On Apple Silicon (`osx-arm64`):
 
 ```bash
 pixi run Rscript -e 'install.packages(c("simona", "simplifyEnrichment"), repos = c("https://bioc-release.r-universe.dev", "https://cloud.r-project.org"))'
 ```
-
-
-
-
-
-

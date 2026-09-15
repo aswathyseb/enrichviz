@@ -4,7 +4,7 @@ Gene Set Enrichment Analysis (GSEA) tests whether genes belonging to a biologica
 
 The scripts described here run GSEA and provide plots for interpreting GO or KEGG enrichment results. All plotting scripts accept both databases, from fgsea or clusterProfiler, as CSV, TSV, or RDS.
 
-Generate the GSEA results using `gsea_GO.R` or `gsea_KEGG.R`:
+Generate the GSEA results using `gsea_GO.R` or `gsea_KEGG.R` (from the repository root: `enrichviz gsea go` / `enrichviz gsea kegg`; plot commands are `enrichviz gsea barplot`, and so on):
 
 ```bash
 Rscript gsea_GO.R --in edger.csv --outdir gsea_out --ont all

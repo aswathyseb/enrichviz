@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+# enrichviz — dispatch ORA/GSEA scripts without typing Rscript paths.
+set -euo pipefail
+
+ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  enrichviz <ora|gsea> <command> [script options...]
+  enrichviz --help
+
+Run gene-set enrichment and plots. Use -h after a command for that script's options.
+
+ORA:
+  enrichviz ora gprofiler        GO over-representation with gprofiler2
+  enrichviz ora barplot          top-term barplot
+  enrichviz ora lollipop         top-term lollipop
+  enrichviz ora dotplot          gene-ratio dotplot
+  enrichviz ora upset            gene-overlap UpSet plot
+  enrichviz ora ssplot           semantic-space plot (query-gene Jaccard)
+  enrichviz ora simplify         GO semantic-similarity heatmap
+
+GSEA:
+  enrichviz gsea go              GO GSEA with fgsea
+  enrichviz gsea kegg            KEGG GSEA with fgsea
+  enrichviz gsea barplot         NES barplot
+  enrichviz gsea lollipop        NES lollipop
+  enrichviz gsea dotplot         leading-edge-ratio dotplot
+  enrichviz gsea ridgeplot       leading-edge rank-score ridges
+  enrichviz gsea volcano         NES vs adjusted P
+  enrichviz gsea nes             running ES for one term
+  enrichviz gsea nes-compare     running ES across GSEA runs
+
+Examples:
+  enrichviz ora barplot --in ora_out/gprofiler_GO.csv --outdir ora_out -n 10 --ont BP
+  enrichviz gsea go --in edger.csv --outdir gsea_out --ont all
+
+From pixi without a shell, put "--" before subcommands so pixi does not
+eat script flags:
+  pixi run enrichviz -- ora barplot -h
+EOF
+}
+
+ora_usage() {
+  cat <<'EOF'
+Usage: enrichviz ora <command> [script options...]
+
+Commands:
+  gprofiler
+  barplot
+  dotplot
+  lollipop
+  upsetssplot
+  simplify
+
+Example:
+  enrichviz ora barplot -h
+EOF
+}
+
+gsea_usage() {
+  cat <<'EOF'
+Usage: enrichviz gsea <command> [script options...]
+
+Commands:
+  go
+  kegg
+  barplot
+  dotplot
+  lollipop        
+  ridgeplot
+  volcano
+  nes
+  nes-compare
+
+Example:
+  enrichviz gsea barplot -h
+EOF
+}
+
+die() {
+  printf '%s\n' "$*" >&2
+  exit 2
+}
+
+run_script() {
+  local script="$1"
+  shift
+  if [[ ! -f "$script" ]]; then
+    die "Script not found: $script"
+  fi
+  if ! command -v Rscript >/dev/null 2>&1; then
+    die "Rscript not found. Activate the environment with pixi shell, or run: pixi run enrichviz -- <ora|gsea> <command> ..."
+  fi
+  exec Rscript "$script" "$@"
+}
+
+if [[ $# -eq 0 ]]; then
+  usage
+  exit 2
+fi
+
+case "$1" in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+esac
+
+track="$1"
+shift
+
+case "$track" in
+  ora)
+    if [[ $# -eq 0 ]]; then
+      ora_usage
+      exit 2
+    fi
+    cmd="$1"
+    shift
+    case "$cmd" in
+      -h | --help | help)
+        ora_usage
+        exit 0
+        ;;
+      gprofiler | gprof)
+        run_script "$ROOT/ora/gprof_GO.R" "$@"
+        ;;
+      barplot)
+        run_script "$ROOT/ora/ora_barplot.R" "$@"
+        ;;
+      lollipop)
+        run_script "$ROOT/ora/ora_lollipop.R" "$@"
+        ;;
+      dotplot)
+        run_script "$ROOT/ora/ora_dotplot.R" "$@"
+        ;;
+      upset | upsetplot)
+        run_script "$ROOT/ora/ora_upsetplot.R" "$@"
+        ;;
+      ssplot)
+        run_script "$ROOT/ora/ora_ssplot.R" "$@"
+        ;;
+      simplify | simplifygo | simplify-go)
+        run_script "$ROOT/ora/simplify_GO.R" "$@"
+        ;;
+      *)
+        die "Unknown ORA command: $cmd
+$(ora_usage)"
+        ;;
+    esac
+    ;;
+  gsea)
+    if [[ $# -eq 0 ]]; then
+      gsea_usage
+      exit 2
+    fi
+    cmd="$1"
+    shift
+    case "$cmd" in
+      -h | --help | help)
+        gsea_usage
+        exit 0
+        ;;
+      go)
+        run_script "$ROOT/gsea/gsea_GO.R" "$@"
+        ;;
+      kegg)
+        run_script "$ROOT/gsea/gsea_KEGG.R" "$@"
+        ;;
+      barplot)
+        run_script "$ROOT/gsea/gsea_barplot.R" "$@"
+        ;;
+      lollipop)
+        run_script "$ROOT/gsea/gsea_lollipop.R" "$@"
+        ;;
+      dotplot)
+        run_script "$ROOT/gsea/gsea_dotplot.R" "$@"
+        ;;
+      ridgeplot)
+        run_script "$ROOT/gsea/gsea_ridgeplot.R" "$@"
+        ;;
+      volcano)
+        run_script "$ROOT/gsea/gsea_volcano.R" "$@"
+        ;;
+      nes)
+        run_script "$ROOT/gsea/gsea_NES.R" "$@"
+        ;;
+      nes-compare | nes_compare)
+        run_script "$ROOT/gsea/gsea_NES_compare.R" "$@"
+        ;;
+      *)
+        die "Unknown GSEA command: $cmd
+$(gsea_usage)"
+        ;;
+    esac
+    ;;
+  *)
+    die "Unknown track: $track (expected ora or gsea)
+$(usage)"
+    ;;
+esac

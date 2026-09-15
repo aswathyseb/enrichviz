@@ -5,7 +5,16 @@ name = "enrichviz"
 platforms = ["osx-arm64", "linux-64"]
 version = "0.1.0"
 
-[tasks]
+[activation]
+scripts = ["scripts/activate.sh"]
+
+[tasks.setup-annot]
+cmd = "bash scripts/install-annot.sh"
+description = "Download go.db and OrgDb annotation packages"
+
+[tasks.enrichviz]
+cmd = "bash bin/enrichviz"
+description = "Run enrichviz ORA/GSEA subcommands"
 
 [dependencies]
 r-optparse = ">=1.8.2,<2"
