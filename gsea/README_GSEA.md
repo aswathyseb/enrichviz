@@ -2,7 +2,7 @@
 
 Gene Set Enrichment Analysis (GSEA) tests whether genes belonging to a biological function are concentrated toward the top or bottom of a ranked gene list. Unlike over-representation analysis (ORA), GSEA uses all tested genes rather than a predefined list of differentially expressed genes.
 
-The commands described here run GSEA and provide plots for interpreting GO or KEGG enrichment results. All plotting commands accept both databases, from fgsea or clusterProfiler, as CSV, TSV, or RDS. After install, run them inside `pixi shell` (or as `pixi run enrichviz -- …`).
+The commands described here run GSEA and provide plots for interpreting GO or KEGG enrichment results. All plotting commands accept both databases, from fgsea or clusterProfiler, as CSV, TSV, or RDS. 
 
 Generate the GSEA results with:
 
