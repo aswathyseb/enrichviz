@@ -2,16 +2,16 @@
 
 Gene Set Enrichment Analysis (GSEA) tests whether genes belonging to a biological function are concentrated toward the top or bottom of a ranked gene list. Unlike over-representation analysis (ORA), GSEA uses all tested genes rather than a predefined list of differentially expressed genes.
 
-The scripts described here run GSEA and provide plots for interpreting GO or KEGG enrichment results. All plotting scripts accept both databases, from fgsea or clusterProfiler, as CSV, TSV, or RDS.
+The commands described here run GSEA and provide plots for interpreting GO or KEGG enrichment results. All plotting commands accept both databases, from fgsea or clusterProfiler, as CSV, TSV, or RDS. After install, run them inside `pixi shell` (or as `pixi run enrichviz -- …`).
 
-Generate the GSEA results using `gsea_GO.R` or `gsea_KEGG.R` (from the repository root: `enrichviz gsea go` / `enrichviz gsea kegg`; plot commands are `enrichviz gsea barplot`, and so on):
+Generate the GSEA results with:
 
 ```bash
-Rscript gsea_GO.R --in edger.csv --outdir gsea_out --ont all
-Rscript gsea_KEGG.R --in edger.csv --outdir gsea_out
+enrichviz gsea go --in edger.csv --outdir gsea_out --ont all
+enrichviz gsea kegg --in edger.csv --outdir gsea_out
 ```
 
-`gsea_KEGG.R` uses MSigDB C2 KEGG Legacy pathways by default (`--kegg legacy`, IDs such as `hsa02010`). Pass `--kegg medicus` for KEGG Medicus. Output files are `ranked_genes_KEGG.csv` / `.rds` and `fgsea_KEGG.csv` / `.rds`. Mouse runs map human KEGG sets to mouse orthologs. clusterProfiler KEGG tables (for example `gseKEGG.csv`) can be plotted the same way.
+`enrichviz gsea kegg` uses MSigDB C2 KEGG Legacy pathways by default (`--kegg legacy`, IDs such as `hsa02010`). Pass `--kegg medicus` for KEGG Medicus. Output files are `ranked_genes_KEGG.csv` / `.rds` and `fgsea_KEGG.csv` / `.rds`. Mouse runs map human KEGG sets to mouse orthologs. clusterProfiler KEGG tables (for example `gseKEGG.csv`) can be plotted the same way.
 
 `--ont BP|CC|MF` selects a GO ontology. KEGG results skip that filter (`--ont KEGG` or `--ont all`). Optional `--prefix NAME` is prepended to plot file names. 
 
@@ -69,7 +69,7 @@ Barplots and lollipop plots provide a concise overview of the strongest enriched
 
 ---
 
-# 1. Barplot (`gsea_barplot.R`)
+# 1. Barplot (`enrichviz gsea barplot`)
 
 The barplot shows the terms with the strongest significant positive and negative enrichment. Both GO and KEGG results from GSEA are supported.
 
@@ -87,8 +87,8 @@ Negative NES values extend to the left of zero and positive values to the right.
 ## How to run
 
 ```bash
-Rscript gsea_barplot.R --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
-Rscript gsea_barplot.R --in gsea_out/fgsea_KEGG.csv --outdir gsea_out --n 10 
+enrichviz gsea barplot --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
+enrichviz gsea barplot --in gsea_out/fgsea_KEGG.csv --outdir gsea_out --n 10
 ```
 
 ### Output
@@ -102,7 +102,7 @@ With `--prefix NAME`, files are named `NAME_gsea_BP_barplot.pdf`. KEGG tables wr
 
 ---
 
-# 2. Lollipop plot (`gsea_lollipop.R`)
+# 2. Lollipop plot (`enrichviz gsea lollipop`)
 
 The lollipop plot shows enrichment strength, statistical significance, and gene-set size for the selected terms. Both GO and KEGG results from GSEA are supported.
 
@@ -120,8 +120,8 @@ Points to the right of zero have positive NES and points to the left have negati
 ## How to run
 
 ```bash
-Rscript gsea_lollipop.R --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
-Rscript gsea_lollipop.R --in t5/fgsea_KEGG.csv --outdir gsea_out --n 10 
+enrichviz gsea lollipop --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
+enrichviz gsea lollipop --in gsea_out/fgsea_KEGG.csv --outdir gsea_out --n 10
 ```
 
 ### Output
@@ -135,7 +135,7 @@ With `--prefix NAME`, files are named `NAME_gsea_BP_lollipop.pdf`. KEGG tables w
 
 ---
 
-# 3. Dotplot (`gsea_dotplot.R`)
+# 3. Dotplot (`enrichviz gsea dotplot`)
 
 The dotplot shows the contribution of leading-edge genes to each enriched term. Both GO and KEGG results from GSEA are supported.
 
@@ -161,8 +161,8 @@ Term selection is based on |NES|, but terms are displayed according to their sig
 ## How to run
 
 ```bash
-Rscript gsea_dotplot.R --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
-Rscript gsea_dotplot.R --in t5/fgsea_KEGG.csv --outdir gsea_out --n 10 
+enrichviz gsea dotplot --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
+enrichviz gsea dotplot --in gsea_out/fgsea_KEGG.csv --outdir gsea_out --n 10
 ```
 
 ### Output
@@ -176,7 +176,7 @@ With `--prefix NAME`, files are named `NAME_gsea_BP_dotplot.pdf`. KEGG tables wr
 
 ---
 
-# 4. Ridgeplot (`gsea_ridgeplot.R`)
+# 4. Ridgeplot (`enrichviz gsea ridgeplot`)
 
 The ridgeplot shows the distribution of ranking scores among the leading-edge genes for each enriched term. It requires both the GSEA result and the ranked gene table used for GSEA. Both GO and KEGG results from GSEA are supported.
 
@@ -198,13 +198,13 @@ The terms are ordered by NES. Statistical significance is represented by the fil
 ## How to run
 
 ```bash
-Rscript gsea_ridgeplot.R \
+enrichviz gsea ridgeplot \
   --in gsea_out/fgsea_GO_all.csv \
   --rank gsea_out/ranked_genes_GO.csv \
   --outdir gsea_out --n 10 --ont BP
-Rscript gsea_ridgeplot.R \
-  --in t5/fgsea_KEGG.csv \
-  --rank t5/ranked_genes_KEGG.csv \
+enrichviz gsea ridgeplot \
+  --in gsea_out/fgsea_KEGG.csv \
+  --rank gsea_out/ranked_genes_KEGG.csv \
   --outdir gsea_out --n 10 --prefix kegg
 ```
 
@@ -221,7 +221,7 @@ With `--prefix NAME`, files are named `NAME_gsea_BP_ridgeplot.pdf`. KEGG tables 
 
 ---
 
-# 5. Volcano plot (`gsea_volcano.R`)
+# 5. Volcano plot (`enrichviz gsea volcano`)
 
 The GSEA volcano plot shows enrichment strength and statistical significance across all tested terms. Both GO and KEGG results from fgsea or clusterProfiler are supported.
 
@@ -247,8 +247,8 @@ fgsea tables usually include non-significant terms, so the grey cloud below the 
 ## How to run
 
 ```bash
-Rscript gsea_volcano.R --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
-Rscript gsea_volcano.R --in gsea_out/fgsea_KEGG.csv --outdir gsea_out --n 10 
+enrichviz gsea volcano --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
+enrichviz gsea volcano --in gsea_out/fgsea_KEGG.csv --outdir gsea_out --n 10
 ```
 
 ### Output
@@ -262,7 +262,7 @@ With `--prefix NAME`, files are named `NAME_gsea_BP_volcano.pdf`. KEGG tables wr
 
 ---
 
-# 6. Running ES / NES plot (`gsea_NES.R`)
+# 6. Running ES / NES plot (`enrichviz gsea nes`)
 
 The running enrichment-score plot shows how the enrichment signal for one GO or KEGG term develops across the complete ranked gene list. Use `--GO` or `--term` with a GO ID (`GO:0051607`) or a KEGG ID (`hsa03010`).
 
@@ -297,7 +297,7 @@ Genes and samples are not clustered. Heatmap colors represent relative expressio
 Using the GSEA result alone:
 
 ```bash
-Rscript gsea_NES.R \
+enrichviz gsea nes \
   --in gsea_out/fgsea_GO_all.csv \
   --GO GO:0051607 \
   --outdir gsea_out
@@ -306,7 +306,7 @@ Rscript gsea_NES.R \
 KEGG example:
 
 ```bash
-Rscript gsea_NES.R \
+enrichviz gsea nes \
   --in gsea_out/fgsea_KEGG.csv \
   --term hsa03010 \
   --outdir gsea_out --prefix kegg
@@ -315,7 +315,7 @@ Rscript gsea_NES.R \
 Including the expression heatmap:
 
 ```bash
-Rscript gsea_NES.R \
+enrichviz gsea nes \
   --in gsea_out/fgsea_GO_all.csv \
   --GO GO:0051607 \
   --expr edger.csv \
@@ -335,7 +335,7 @@ The `--rank` argument is required only when the supplied RDS does not contain th
 
 ---
 
-# 7. Comparing NES profiles across conditions (`gsea_NES_compare.R`)
+# 7. Comparing NES profiles across conditions (`enrichviz gsea nes-compare`)
 
 The NES comparison plot shows the enrichment trajectory of the same GO or KEGG term across multiple GSEA analyses. Use `--GO` or `--term` with the term ID.
 
@@ -362,7 +362,7 @@ The comparison requires at least two GSEA inputs. RDS files are preferred becaus
 Inputs can be assigned condition names directly:
 
 ```bash
-Rscript gsea_NES_compare.R \
+enrichviz gsea nes-compare \
   --GO GO:0051607 \
   --in young=gsea_out/young_fgsea_GO_all.rds,old=gsea_out/old_fgsea_GO_all.rds \
   --outdir gsea_out
@@ -371,7 +371,7 @@ Rscript gsea_NES_compare.R \
 KEGG example:
 
 ```bash
-Rscript gsea_NES_compare.R \
+enrichviz gsea nes-compare \
   --term hsa03010 \
   --in young=gsea_out/young_fgsea_KEGG.rds,old=gsea_out/old_fgsea_KEGG.rds \
   --outdir gsea_out --prefix kegg
@@ -380,7 +380,7 @@ Rscript gsea_NES_compare.R \
 Alternatively, unlabeled input files can be combined with `--labels`:
 
 ```bash
-Rscript gsea_NES_compare.R \
+enrichviz gsea nes-compare \
   --GO GO:0051607 \
   --in a.rds,b.rds \
   --labels A,B \
