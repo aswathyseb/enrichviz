@@ -36,6 +36,7 @@ pixi add \
   r-msigdbr \
   r-httpuv \
   r-shiny \
+  r-xml2 \
   bioconductor-fgsea \
   bioconductor-complexheatmap \
   bioconductor-go.db \
@@ -51,13 +52,7 @@ pixi shell
 
 ## Annotation databases
 
-`bioconductor-go.db`, `bioconductor-org.hs.eg.db`, and `bioconductor-org.mm.eg.db` are sub packages. Pixi does not run conda post-link scripts, so `pixi install` does not unpack the R databases. From the repository root:
-
-```bash
-pixi run setup-annot
-```
-
-That runs `scripts/install-annot.sh`, which is equivalent to:
+`bioconductor-go.db`, `bioconductor-org.hs.eg.db`, and `bioconductor-org.mm.eg.db` are sub packages. Pixi does not run conda post-link scripts, so `pixi install` does not unpack the R databases. 
 
 ```bash
 pixi run bash -c 'export PREFIX="$CONDA_PREFIX"
@@ -66,18 +61,16 @@ installBiocDataPackage.sh "org.hs.eg.db-3.22.0"
 installBiocDataPackage.sh "org.mm.eg.db-3.22.0"'
 ```
 
-## Install simona and simplifyEnrichment
-
-`enrichviz ora simplify` needs these packages. `bioconductor-simona` has no `osx-arm64` conda build, so `pixi add bioconductor-simona` cannot be solved on Apple Silicon. `simplifyEnrichment` depends on `simona`.
-
-On linux-64 or Intel macOS:
+## Installing Simona and simplifyEnrichment
 
 ```bash
-pixi add bioconductor-simona bioconductor-simplifyenrichment
+pixi run Rscript -e 'install.packages(c("simona", "simplifyEnrichment"), repos = c("https://bioc.r-universe.dev", "https://cloud.r-project.org"))'
 ```
 
-On Apple Silicon (`osx-arm64`):
+Note: `pixi add bioconductor-simona` is not used since that package has no `osx-arm64` conda build, and pixi must solve every platform listed in the project.
+
+Running the above commands is equivalent to running the following from the repository root:
 
 ```bash
-pixi run Rscript -e 'install.packages(c("simona", "simplifyEnrichment"), repos = c("https://bioc-release.r-universe.dev", "https://cloud.r-project.org"))'
+pixi run setup-annot
 ```

@@ -25,9 +25,9 @@ pixi install
 pixi run setup-annot
 ```
 
-`setup-annot` installs `go.db` and the human and mouse OrgDb annotation packages. This additional step is required because `pixi install` does not run the conda post-link scripts needed by these packages.
+`setup-annot` installs `go.db`, the human and mouse OrgDb packages, and `simona` / `simplifyEnrichment` (needed for `ora simplify`). The annotation download is required because `pixi install` does not run conda post-link scripts. 
 
-The `ora simplify` command also requires `simona` and `simplifyEnrichment`. See [install.md](install.md) for additional installation details and instructions for rebuilding the environment.
+Rebuilding the environment from scratch is documented in [install.md](install.md).
 
 ## Running enrichviz
 
