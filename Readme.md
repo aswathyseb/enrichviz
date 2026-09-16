@@ -31,7 +31,7 @@ Rebuilding the environment from scratch is documented in [install.md](install.md
 
 ## Running enrichviz
 
-The `enrichviz` command provides a common interface to the ORA and GSEA scripts. Script options such as `--in`, `--outdir`, and `-h` remain unchanged.
+The `enrichviz` command provides a common interface to the ORA and GSEA scripts. 
 
 Start a pixi shell:
 
