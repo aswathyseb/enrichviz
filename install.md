@@ -7,14 +7,43 @@ The usual install is in [README.md](README.md): clone the repository, then `pixi
 Only needed if you are not using the committed `pixi.toml` / `pixi.lock` (for example when starting a new project).
 
 ```bash
+## Intialize the pixi environment
 pixi init
 pixi workspace channel add bioconda
 pixi project platform add osx-arm64 linux-64
 ```
 
-Then add the packages listed in `pixi.toml`, or copy that file and run `pixi install`.
+Add the packages.
 
-Activate the environment when you want an interactive prompt (`R`, `enrichviz` on `PATH`):
+```bash
+## Add packages
+pixi add \
+  r-optparse \
+  r-readr \
+  r-dplyr \
+  r-tibble \
+  r-tidyr \
+  r-stringr \
+  r-ggplot2 \
+  r-ggridges \
+  r-patchwork \
+  r-gprofiler2 \
+  r-complexupset \
+  r-ggrepel \
+  r-ggforce \
+  r-tidydr \
+  r-remotes \
+  r-msigdbr \
+  r-httpuv \
+  r-shiny \
+  bioconductor-fgsea \
+  bioconductor-complexheatmap \
+  bioconductor-go.db \
+  "bioconductor-org.hs.eg.db" \
+  "bioconductor-org.mm.eg.db"
+  ```
+
+Activate the environment
 
 ```bash
 pixi shell
@@ -22,7 +51,7 @@ pixi shell
 
 ## Annotation databases
 
-`bioconductor-go.db`, `bioconductor-org.hs.eg.db`, and `bioconductor-org.mm.eg.db` are stub packages. Pixi does not run conda post-link scripts, so `pixi install` does not unpack the R databases. From the repository root:
+`bioconductor-go.db`, `bioconductor-org.hs.eg.db`, and `bioconductor-org.mm.eg.db` are sub packages. Pixi does not run conda post-link scripts, so `pixi install` does not unpack the R databases. From the repository root:
 
 ```bash
 pixi run setup-annot

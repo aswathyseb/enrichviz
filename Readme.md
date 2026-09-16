@@ -1,18 +1,22 @@
 # enrichviz
 
-R scripts for running and plotting gene-set enrichment from differential-expression results. Two complementary analyses are supported:
+`enrichviz` provides R scripts for functional enrichment analysis and visualization of differential-expression results.
 
-- **Over-representation analysis (ORA)** tests whether annotated functions occur more often among significant genes than expected by chance.
-- **Gene set enrichment analysis (GSEA)** tests whether genes in a function concentrate toward the top or bottom of a ranked list of all tested genes.
+It supports two complementary approaches:
 
-Both tracks accept GO and KEGG results and write PDF plots plus the tables used to draw them. Plot-level details, options, and examples live in the analysis-specific guides:
+- **Over-representation analysis (ORA):** identifies functions that occur more often among significant genes than expected by chance.
+- **Gene set enrichment analysis (GSEA):** identifies functions whose genes are concentrated toward the top or bottom of a ranked list of all tested genes.
 
-- [Visualization of enriched terms from ORA](ora/README_ORA.md)
-- [Visualization of enriched terms from GSEA](gsea/README_GSEA.md)
+Both ORA and GSEA support **GO** and **KEGG** results and generate publication-ready PDF plots together with the tables used to create them.
 
-## Install
+Detailed guides:
 
-The environment is defined by `pixi.toml` and pinned in `pixi.lock`. You need [pixi](https://pixi.sh/).
+- [ORA visualization guide](ora/README_ORA.md)
+- [GSEA visualization guide](gsea/README_GSEA.md)
+
+## Installation
+
+The environment is managed with [pixi](https://pixi.sh/) using `pixi.toml` and `pixi.lock`.
 
 ```bash
 git clone https://github.com/aswathyseb/enrichviz.git
@@ -21,89 +25,116 @@ pixi install
 pixi run setup-annot
 ```
 
-`setup-annot` downloads `go.db` and the human/mouse OrgDb packages. Pixi does not run conda post-link scripts, so `pixi install` alone leaves those stubs empty.
+`setup-annot` installs `go.db` and the human and mouse OrgDb annotation packages. This additional step is required because `pixi install` does not run the conda post-link scripts needed by these packages.
 
-`ora simplify` also needs `simona` and `simplifyEnrichment`. Those steps, and rebuilding the environment from scratch, are in [install.md](install.md).
+The `ora simplify` command also requires `simona` and `simplifyEnrichment`. See [install.md](install.md) for additional installation details and instructions for rebuilding the environment.
 
-## Run
+## Running enrichviz
 
-`enrichviz` maps subcommands to the R scripts. Script flags (`--in`, `--outdir`, `-h`, …) are unchanged.
+The `enrichviz` command provides a common interface to the ORA and GSEA scripts. Script options such as `--in`, `--outdir`, and `-h` remain unchanged.
 
-Inside `pixi shell`:
+Start a pixi shell:
 
 ```bash
 pixi shell
-enrichviz --help
-enrichviz ora barplot -h
-enrichviz ora barplot --in ora_out/gprofiler_GO.csv --outdir ora_out -n 10 --ont BP
-enrichviz gsea go --in edger.csv --outdir gsea_out --ont all
 ```
 
-Inside `pixi shell`, Tab completes tracks and subcommands (`enrichviz ora gpr<Tab>` → `gprofiler`). After the subcommand, Tab completes file paths. Start a new `pixi shell` after pulling this change.
-
-Without a shell, start the same command with `pixi run enrichviz --` so pixi does not treat `--in` as its own flag:
+Then run commands directly. To get help run
 
 ```bash
-pixi run enrichviz -- ora barplot -h
-pixi run enrichviz -- gsea barplot --in gsea_out/fgsea_GO_all.csv --outdir gsea_out -n 10 --ont BP
+enrichviz --help
 ```
 
-| Command | Script |
-|---|---|
-| `enrichviz ora gprofiler` | `ora/gprof_GO.R` |
-| `enrichviz ora barplot` | `ora/ora_barplot.R` |
-| `enrichviz ora lollipop` | `ora/ora_lollipop.R` |
-| `enrichviz ora dotplot` | `ora/ora_dotplot.R` |
-| `enrichviz ora upset` | `ora/ora_upsetplot.R` |
-| `enrichviz ora ssplot` | `ora/ora_ssplot.R` |
-| `enrichviz ora simplify` | `ora/simplify_GO.R` |
-| `enrichviz gsea go` | `gsea/gsea_GO.R` |
-| `enrichviz gsea kegg` | `gsea/gsea_KEGG.R` |
-| `enrichviz gsea barplot` | `gsea/gsea_barplot.R` |
-| `enrichviz gsea lollipop` | `gsea/gsea_lollipop.R` |
-| `enrichviz gsea dotplot` | `gsea/gsea_dotplot.R` |
-| `enrichviz gsea ridgeplot` | `gsea/gsea_ridgeplot.R` |
-| `enrichviz gsea volcano` | `gsea/gsea_volcano.R` |
-| `enrichviz gsea nes` | `gsea/gsea_NES.R` |
-| `enrichviz gsea nes-compare` | `gsea/gsea_NES_compare.R` |
+Some example commands are below.
 
-## ORA or GSEA
+Perform ORA on GO terms
+
+```bash
+enrichviz ora gprofiler --in edger.csv --outdir res --direction yes
+```
+Create barplot of top N terms
+
+```bash
+enrichviz ora barplot --in res/gprofiler_GO.csv --outdir res --ont BP
+```
+
+Get help on individual commands with `-h`.
+
+```bash
+enrichviz ora barplot -h
+```
+
+Tab completion is available inside `pixi shell` for tracks, subcommands, and file paths.
+
+
+## Available commands
+
+| Command | Purpose |
+|---|---|
+| `enrichviz ora gprofiler` | Run GO enrichment with gProfiler |
+| `enrichviz ora barplot` | ORA barplot |
+| `enrichviz ora lollipop` | ORA lollipop plot |
+| `enrichviz ora dotplot` | ORA dotplot |
+| `enrichviz ora upset` | UpSet plot |
+| `enrichviz ora ssplot` | Semantic space plot |
+| `enrichviz ora simplify` | Simplify GO terms |
+| `enrichviz gsea go` | Run GO GSEA |
+| `enrichviz gsea kegg` | Run KEGG GSEA |
+| `enrichviz gsea barplot` | GSEA barplot |
+| `enrichviz gsea lollipop` | GSEA lollipop plot |
+| `enrichviz gsea dotplot` | GSEA dotplot |
+| `enrichviz gsea ridgeplot` | GSEA ridgeplot |
+| `enrichviz gsea volcano` | GSEA volcano plot |
+| `enrichviz gsea nes` | Running ES/NES plot |
+| `enrichviz gsea nes-compare` | Compare NES across GSEA runs |
+
+## ORA or GSEA?
+
+ORA and GSEA answer related but different biological questions.
 
 | | ORA | GSEA |
 |---|---|---|
-| Input genes | Significant DEGs (and a background) | All tested genes, ranked |
-| Typical question | Which functions are over-represented among DEGs? | Do function members pile up among the strongest up- or down-regulated genes? |
-| Direction | Optional: test up and down DEGs separately | Encoded in the ranking statistic and NES |
-| Run the analysis | `enrichviz ora gprofiler` | `enrichviz gsea go` / `enrichviz gsea kegg` |
+| **Input** | Significant DEGs and a background gene set | All tested genes ranked by a statistic |
+| **Question** | Which functions are over-represented among DEGs? | Which functions are enriched toward either end of the ranked gene list? |
+| **Direction** | Up- and down-regulated genes can be tested separately | Direction is represented by the ranking statistic and NES |
+| **Run** | `enrichviz ora gprofiler` | `enrichviz gsea go` or `enrichviz gsea kegg` |
 
-Use ORA when you already have a DEG list and want functions that are over-represented in that list. Use GSEA when you want to use the full ranked list, including genes that do not pass a significance cutoff.
+Use **ORA** when you have a defined list of significant DEGs and want to identify functions enriched within that list.
 
-Plotting scripts read CSV, TSV, or RDS tables from gProfiler, clusterProfiler, or fgsea.
+Use **GSEA** when you want to analyze the complete ranked gene list without applying a significance cutoff.
+
+Plotting commands accept CSV, TSV, or RDS results from **gProfiler**, **clusterProfiler**, or **fgsea**.
 
 ## Choosing a visualization
 
-Several plot types appear in both tracks. They answer the same kind of question, but the axes differ: ORA emphasizes significance and gene overlap among DEGs, while GSEA emphasizes NES, leading-edge genes, and position in the ranked list.
+Different plots highlight different aspects of the enrichment results.
 
-**Overview of the strongest terms**
+**Summarizing the strongest enriched terms**
 
-- **Barplot** — magnitude and direction of the top terms.
-- **Lollipop** — the same ranking, with point size for gene-set or gene count.
-- **Dotplot** — fraction of the query (ORA gene ratio) or of the gene set that drives enrichment (GSEA leading-edge ratio).
+- **Barplot:** shows the magnitude and direction of the strongest terms.
+- **Lollipop plot:** provides a similar overview while using point size to represent gene-set size or gene count.
+- **Dotplot:** shows the fraction of genes contributing to enrichment.
 
-**How terms relate to each other** (ORA)
+For ORA, the dotplot represents the query gene ratio. For GSEA, it represents the leading-edge ratio.
 
-- **UpSet plot** — shared query genes among selected terms.
-- **Semantic space plot** — terms arranged by Jaccard overlap of query genes.
-- **simplifyGO** — GO terms grouped by semantic similarity in the ontology.
+**Exploring relationships among ORA terms**
 
-**Where the signal sits in the ranked list** (GSEA)
+- **UpSet plot:** shows genes shared among selected enriched terms.
+- **Semantic space plot:** arranges terms according to the overlap of their query genes.
+- **simplifyGO:** groups GO terms according to semantic similarity within the ontology.
 
-- **Ridgeplot** — distribution of leading-edge ranking scores.
-- **Volcano** — NES versus adjusted *P* for all tested terms.
-- **Running ES / NES** — enrichment trajectory for one term.
-- **NES comparison** — the same term across multiple GSEA runs.
+**Examining GSEA signals**
 
-For term-selection rules, plot elements, and command lines, see [ora/README_ORA.md](ora/README_ORA.md) and [gsea/README_GSEA.md](gsea/README_GSEA.md).
+- **Ridgeplot:** shows the distribution of ranking scores for leading-edge genes.
+- **Volcano plot:** shows NES against adjusted *P* value for all tested terms.
+- **Running ES/NES plot:** shows the enrichment trajectory of an individual term.
+- **NES comparison:** compares the same term across multiple GSEA analyses.
+
+For plot-specific options, term-selection rules, and example commands, see:
+
+- [ORA visualization guide](ora/README_ORA.md)
+- [GSEA visualization guide](gsea/README_GSEA.md)
+
+## License
 
 Released under the [MIT License](LICENSE).
-
