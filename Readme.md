@@ -1,6 +1,6 @@
 # enrichviz
 
-`enrichviz` provides R scripts for functional enrichment analysis and visualization of differential-expression results.
+`enrichviz` provides R scripts for the visualization of functional enrichment analysis results.
 
 It supports two complementary approaches:
 

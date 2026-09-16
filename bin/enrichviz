@@ -6,6 +6,8 @@ ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 usage() {
   cat <<'EOF'
+enrichviz
+
 Usage:
   enrichviz <ora|gsea> <command> [script options...]
   enrichviz --help
