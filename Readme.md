@@ -7,7 +7,7 @@ It supports two complementary approaches:
 - **Over-representation analysis (ORA):** identifies functions that occur more often among significant genes than expected by chance.
 - **Gene set enrichment analysis (GSEA):** identifies functions whose genes are concentrated toward the top or bottom of a ranked list of all tested genes.
 
-Both ORA and GSEA support **GO** and **KEGG** results and generate publication-ready PDF plots together with the tables used to create them.
+Both ORA and GSEA scripts support **GO** and **KEGG** results and generate publication-ready PDF plots together with the tables used to create them.
 
 Detailed guides:
 
