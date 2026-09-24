@@ -4,6 +4,7 @@
 
 It supports two complementary approaches:
 
+
 - **Over-representation analysis (ORA):** identifies functions that occur more often among significant genes than expected by chance.
 - **Gene set enrichment analysis (GSEA):** identifies functions whose genes are concentrated toward the top or bottom of a ranked list of all tested genes.
 
