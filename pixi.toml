@@ -5,15 +5,15 @@ name = "enrichviz"
 platforms = ["osx-arm64", "linux-64"]
 version = "0.1.0"
 
-[activation]
-scripts = ["scripts/activate.sh"]
+[target.unix.activation]
+scripts = ["bin/activate.sh"]
 
 [tasks.setup-annot]
-cmd = "bash scripts/install-annot.sh"
+cmd = "Rscript src/install-annot.R"
 description = "Download go.db/OrgDb and install simona and simplifyEnrichment"
 
 [tasks.enrichviz]
-cmd = "bash bin/enrichviz"
+cmd = "Rscript src/enrichviz.R"
 description = "Run enrichviz ORA/GSEA subcommands"
 
 [dependencies]
