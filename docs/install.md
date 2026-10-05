@@ -44,6 +44,8 @@ pixi add \
   r-xml2 \
   bioconductor-fgsea \
   bioconductor-complexheatmap \
+  bioconductor-clusterprofiler \
+  bioconductor-annotationdbi \
   bioconductor-go.db \
   "bioconductor-org.hs.eg.db" \
   "bioconductor-org.mm.eg.db"

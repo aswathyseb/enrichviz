@@ -78,17 +78,38 @@ Details on each plot are given in  [ORA visualization guide](docs/ora.md)
 
 ## Available commands
 
+Analysis commands write enrichment tables. Plot commands read those tables and write figures.
+
+### ORA
+
 | Command | Purpose |
 |---|---|
 | `enrichviz ora_gprofiler` | Run GO enrichment with gProfiler |
+| `enrichviz ora_enricher` | Run ORA with clusterProfiler enricher (MSigDB GO or a GMT file) |
+| `enrichviz ora_clusterprofiler` | Run GO enrichment with clusterProfiler enrichGO |
+
+### ORA plots
+
+| Command | Purpose |
+|---|---|
 | `enrichviz ora_barplot` | ORA barplot |
 | `enrichviz ora_lollipop` | ORA lollipop plot |
 | `enrichviz ora_dotplot` | ORA dotplot |
 | `enrichviz ora_upset` | UpSet plot |
 | `enrichviz ora_ssplot` | Semantic space plot |
 | `enrichviz ora_simplify` | Simplify GO terms |
+
+### GSEA
+
+| Command | Purpose |
+|---|---|
 | `enrichviz gsea_go` | Run GO GSEA |
 | `enrichviz gsea_kegg` | Run KEGG GSEA |
+
+### GSEA plots
+
+| Command | Purpose |
+|---|---|
 | `enrichviz gsea_barplot` | GSEA barplot |
 | `enrichviz gsea_lollipop` | GSEA lollipop plot |
 | `enrichviz gsea_dotplot` | GSEA dotplot |

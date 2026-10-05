@@ -1,4 +1,4 @@
-# Shared helpers for ORA tables from gprofiler, clusterProfiler, fgsea, etc.
+# Shared helpers for ORA tables from gprofiler, clusterProfiler, fgsea, Enrichr, etc.
 
 suppressPackageStartupMessages({
   library(readr)
@@ -17,12 +17,20 @@ DIRECTION_ALIASES <- c(
   "both", "significant"
 )
 
+# Match a column by name, ignoring case. Returns the header as it appears in df.
 first_col <- function(df, candidates) {
-  hit <- candidates[candidates %in% colnames(df)]
-  if (length(hit) == 0) {
+  nms <- colnames(df)
+  if (length(nms) == 0 || length(candidates) == 0) {
     return(NA_character_)
   }
-  hit[[1]]
+  key <- tolower(nms)
+  for (cand in candidates) {
+    hit <- match(tolower(cand), key)
+    if (!is.na(hit)) {
+      return(nms[[hit]])
+    }
+  }
+  NA_character_
 }
 
 normalize_ont <- function(x) {
@@ -93,7 +101,8 @@ as_gene_string <- function(x) {
   if (is.list(x)) {
     return(vapply(x, function(v) paste(v, collapse = "/"), character(1)))
   }
-  gsub(",", "/", as.character(x), fixed = TRUE)
+  x <- gsub(",", "/", as.character(x), fixed = TRUE)
+  gsub(";", "/", x, fixed = TRUE)
 }
 
 has_slot <- function(x, slot) {
@@ -159,15 +168,18 @@ read_ora_input <- function(path) {
 }
 
 infer_ora_format <- function(df) {
-  nms <- colnames(df)
+  nms <- tolower(colnames(df))
   if (all(c("term_id", "source") %in% nms) || all(c("term_id", "term_name") %in% nms)) {
     return("gprofiler")
   }
-  if (all(c("ID", "Description") %in% nms) && any(c("p.adjust", "pvalue", "GeneRatio") %in% nms)) {
+  if (all(c("id", "description") %in% nms) && any(c("p.adjust", "pvalue", "generatio") %in% nms)) {
     return("clusterProfiler")
   }
   if (all(c("pathway", "padj") %in% nms) || all(c("pathway", "pval") %in% nms)) {
     return("fgsea")
+  }
+  if ("term" %in% nms && any(c("adjusted p-value", "p-value", "overlap") %in% nms)) {
+    return("enrichr")
   }
   "generic"
 }
@@ -301,13 +313,17 @@ normalize_ora_table <- function(df) {
   message("Detected ORA table format: ", fmt)
 
   id_col <- first_col(df, c("term_id", "ID", "GO_ID", "go_id", "gs_exact_source", "pathway"))
-  desc_col <- first_col(df, c("term_name", "Description", "description", "gs_name", "term"))
+  desc_col <- first_col(df, c("term_name", "Description", "description", "gs_name", "Term", "term"))
   adj_col <- first_col(df, c(
     "p.adjust", "p_adjust", "adjusted_p_value", "adjusted.p.value",
-    "FDR", "padj", "qvalue", "q.value"
+    "Adjusted P-value", "Adjusted P value",
+    "FDR", "padj", "qvalue", "q.value",
+    "Old Adjusted P-value"
   ))
   raw_col <- first_col(df, c(
-    "pvalue", "p_value", "pval", "p.value", "native_p_value", "native.p.value"
+    "pvalue", "p_value", "pval", "p.value", "native_p_value", "native.p.value",
+    "P-value", "P value",
+    "Old P-value"
   ))
   ont_col <- first_col(df, c("ONTOLOGY", "ontology", "source", "ont"))
   dir_col <- pick_direction_column(df)
@@ -317,30 +333,41 @@ normalize_ora_table <- function(df) {
   universe_col <- first_col(df, c("effective_domain_size", "universeSize", "universe"))
   ratio_col <- first_col(df, c("GeneRatio", "gene_ratio"))
   bg_col <- first_col(df, c("BgRatio", "bg_ratio"))
+  overlap_col <- first_col(df, c("Overlap", "overlap"))
   fe_col <- first_col(df, c("FoldEnrichment", "fold_enrichment", "foldEnrichment"))
   z_col <- first_col(df, c("zScore", "zscore", "z.score"))
   gene_col <- first_col(df, c(
     "intersection_genes", "geneID", "gene_id", "intersections", "intersection",
-    "leadingEdge", "core_enrichment"
+    "leadingEdge", "core_enrichment", "Genes"
   ))
 
   if (is.na(id_col) && is.na(desc_col)) {
     stop(
       "Input must have a term ID or description column ",
-      "(e.g. term_id / term_name, ID / Description, or pathway).",
+      "(e.g. term_id / term_name, ID / Description, Term, or pathway).",
       call. = FALSE
     )
   }
   if (is.na(adj_col) && is.na(raw_col)) {
     stop(
       "Input must have a p-value column ",
-      "(e.g. p_value, adjusted_p_value, p.adjust, padj, or pvalue).",
+      "(e.g. p_value, adjusted_p_value, p.adjust, padj, P-value, or Adjusted P-value).",
       call. = FALSE
     )
   }
 
   ids <- if (!is.na(id_col)) as.character(df[[id_col]]) else as.character(df[[desc_col]])
   descs <- if (!is.na(desc_col)) as.character(df[[desc_col]]) else ids
+  # Enrichr stores the id inside the label: "Defense Response to Virus (GO:0051607)".
+  if (is.na(id_col)) {
+    embedded <- str_match(descs, "\\(([^)]+)\\)\\s*$")[, 2]
+    keep <- !is.na(embedded) & (is_go_term_id(embedded) | is_kegg_term_id(embedded))
+    if (any(keep)) {
+      ids[keep] <- embedded[keep]
+      stripped <- str_replace(descs, "\\s*\\([^)]+\\)\\s*$", "")
+      descs[keep] <- ifelse(nzchar(stripped[keep]), stripped[keep], descs[keep])
+    }
+  }
   p_adj <- as.numeric(df[[if (!is.na(adj_col)) adj_col else raw_col]])
   p_raw <- as.numeric(df[[if (!is.na(raw_col)) raw_col else adj_col]])
 
@@ -363,6 +390,13 @@ normalize_ora_table <- function(df) {
   }
   if (all(is.na(universe_size)) && !is.na(bg_col)) {
     universe_size <- ratio_denominator(df[[bg_col]])
+  }
+  # Enrichr Overlap is "intersection/term size", e.g. 30/207.
+  if (all(is.na(count)) && !is.na(overlap_col)) {
+    count <- ratio_numerator(df[[overlap_col]])
+  }
+  if (all(is.na(set_size)) && !is.na(overlap_col)) {
+    set_size <- ratio_denominator(df[[overlap_col]])
   }
   if (all(is.na(count))) {
     count <- ifelse(is.na(set_size), 1, set_size)
