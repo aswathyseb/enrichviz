@@ -17,6 +17,7 @@ ORGANISM  ?= hsapiens
 FDR       ?= 0.05
 LOG2FC    ?= 1
 ORA       ?=
+PREFIX    ?=
 
 ENRICHVIZ := Rscript src/enrichviz.R
 
@@ -34,18 +35,26 @@ endif
 
 # Create separate plots for up and down directions
 ifeq (${DIRECTION},none)
-  UPSET_PDF := ${OUT}/ora_${ONT}_upset.pdf
-  SS_PDF    := ${OUT}/ora_${ONT}_ssplot.pdf
+  UPSET_PDF := ${OUT}/${PREFIX}_ora_${ONT}_upset.pdf
+  SS_PDF    := ${OUT}/${PREFIX}_ora_${ONT}_ssplot.pdf
 else
-  UPSET_PDF := ${OUT}/ora_${ONT}_${DIRECTION}_upset.pdf
-  SS_PDF    := ${OUT}/ora_${ONT}_${DIRECTION}_ssplot.pdf
+  UPSET_PDF := ${OUT}/${PREFIX}_ora_${ONT}_${DIRECTION}_upset.pdf
+  SS_PDF    := ${OUT}/${PREFIX}_ora_${ONT}_${DIRECTION}_ssplot.pdf
 endif
 
 # Up and Down are added to the same plot when direction is specified
-BAR_PDF      := ${OUT}/ora_${ONT}_barplot.pdf
-LOLLIPOP_PDF := ${OUT}/ora_${ONT}_lollipop.pdf
-DOT_PDF      := ${OUT}/ora_${ONT}_dotplot.pdf
-SIMPLIFY_PDF := ${OUT}/GO_${ONT}_${DIRECTION}_simplifyGO.pdf
+
+ifeq (${PREFIX},)
+   BAR_PDF     := ${OUT}/ora_${ONT}_barplot.pdf
+  LOLLIPOP_PDF := ${OUT}/ora_${ONT}_lollipop.pdf
+  DOT_PDF      := ${OUT}/ora_${ONT}_dotplot.pdf
+  SIMPLIFY_PDF := ${OUT}/GO_${ONT}_${DIRECTION}_simplifyGO.pdf
+else
+  BAR_PDF      := ${OUT}/${PREFIX}_ora_${ONT}_barplot.pdf
+  LOLLIPOP_PDF := ${OUT}/${PREFIX}_ora_${ONT}_lollipop.pdf
+  DOT_PDF      := ${OUT}/${PREFIX}_ora_${ONT}_dotplot.pdf
+  SIMPLIFY_PDF := ${OUT}/${PREFIX}_GO_${ONT}_${DIRECTION}_simplifyGO.pdf
+endif
 
 PLOTS := ${BAR_PDF} ${LOLLIPOP_PDF} ${DOT_PDF} ${UPSET_PDF} ${SS_PDF} ${SIMPLIFY_PDF}
 
@@ -86,22 +95,22 @@ ${ORA_TABLE}: ${IN}
 endif
 
 ${BAR_PDF}: ${ORA_TABLE}
-	${ENRICHVIZ} ora_barplot --in ${ORA_TABLE} --outdir ${OUT} -n ${N} --ont ${ONT}
+	${ENRICHVIZ} ora_barplot --in ${ORA_TABLE} --outdir ${OUT} -n ${N} --ont ${ONT} --prefix ${PREFIX}
 
 ${LOLLIPOP_PDF}: ${ORA_TABLE}
-	${ENRICHVIZ} ora_lollipop --in ${ORA_TABLE} --outdir ${OUT} -n ${N} --ont ${ONT}
+	${ENRICHVIZ} ora_lollipop --in ${ORA_TABLE} --outdir ${OUT} -n ${N} --ont ${ONT} --prefix ${PREFIX}
 
 ${DOT_PDF}: ${ORA_TABLE}
-	${ENRICHVIZ} ora_dotplot --in ${ORA_TABLE} --outdir ${OUT} -n ${N} --ont ${ONT}
+	${ENRICHVIZ} ora_dotplot --in ${ORA_TABLE} --outdir ${OUT} -n ${N} --ont ${ONT} --prefix ${PREFIX}
 
 ${UPSET_PDF}: ${ORA_TABLE}
-	${ENRICHVIZ} ora_upset --in ${ORA_TABLE} --outdir ${OUT} -n ${N} --ont ${ONT} --direction ${DIRECTION}
+	${ENRICHVIZ} ora_upset --in ${ORA_TABLE} --outdir ${OUT} -n ${N} --ont ${ONT} --direction ${DIRECTION} --prefix ${PREFIX}
 
 ${SS_PDF}: ${ORA_TABLE}
-	${ENRICHVIZ} ora_ssplot --in ${ORA_TABLE} --outdir ${OUT} -n ${N_SS} --ont ${ONT} --direction ${DIRECTION}
+	${ENRICHVIZ} ora_ssplot --in ${ORA_TABLE} --outdir ${OUT} -n ${N_SS} --ont ${ONT} --direction ${DIRECTION} --prefix ${PREFIX}
 
 ${SIMPLIFY_PDF}: ${ORA_TABLE}
-	${ENRICHVIZ} ora_simplify --in ${ORA_TABLE} --outdir ${OUT} --ont ${ONT} --direction ${DIRECTION} --organism ${ORGANISM}
+	${ENRICHVIZ} ora_simplify --in ${ORA_TABLE} --outdir ${OUT} --ont ${ONT} --direction ${DIRECTION} --organism ${ORGANISM} --prefix ${PREFIX}
 
 clean:
 	rm -f \
@@ -112,5 +121,5 @@ clean:
 	  ${UPSET_PDF} ${UPSET_PDF:.pdf=_table.csv} \
 	  ${SS_PDF} ${SS_PDF:.pdf=_table.csv} ${SS_PDF:.pdf=_similarity.rds} \
 	  ${SIMPLIFY_PDF} \
-	  ${OUT}/GO_${ONT}_${DIRECTION}_simplifyGO_clusters.csv \
-	  ${OUT}/GO_${ONT}_${DIRECTION}_similarity.rds
+	  ${SIMPLIFY_PDF:.pdf=_clusters.csv} \
+	  ${OUT}/$(if ${PREFIX},${PREFIX}_,)GO_${ONT}_${DIRECTION}_similarity.rds

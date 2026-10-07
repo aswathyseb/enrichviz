@@ -1,12 +1,13 @@
 # Usage:
-#   Rscript simplify_GO.R --in gprofiler_GO.csv --outdir res -n 1000 --ont BP --direction none [--organism hsapiens]
+#   Rscript simplify_GO.R --in gprofiler_GO.csv --outdir res -n 1000 --ont BP --direction none [--organism hsapiens] [--prefix NAME]
 #
 # Semantic similarity clustering of GO ORA terms with simplifyEnrichment.
 # Reads a normalized ORA table (gprofiler, clusterProfiler, fgsea, etc.).
+# --prefix is prepended to output file names; default is none.
 
 ora_simplify_options <- function() {
   list(
-    usage = "Rscript simplify_GO.R --in FILE --outdir DIR -n 1000 --ont BP --direction none [--organism hsapiens]",
+    usage = "Rscript simplify_GO.R --in FILE --outdir DIR -n 1000 --ont BP --direction none [--organism hsapiens] [--prefix NAME]",
     description = paste(
     "Cluster GO terms by semantic similarity with simplifyEnrichment.",
     "Input is normalized with ora_utils.R so gprofiler, clusterProfiler, and fgsea tables work.",
@@ -14,6 +15,7 @@ ora_simplify_options <- function() {
     "Examples:",
     "  Rscript simplify_GO.R --in gprofiler_GO.csv --outdir res -n 1000 --ont BP --direction none",
     "  Rscript simplify_GO.R --in gprofiler_GO.csv --outdir res --ont BP --direction up --organism hsapiens",
+    "  Rscript simplify_GO.R --in gprofiler_GO.csv --outdir res --ont BP --direction up --prefix young",
     sep = "\n"
   ),
     require_input = TRUE,
@@ -33,7 +35,8 @@ ora_simplify_options <- function() {
     opt_organism(
       metavar = "hsapiens|mmusculus",
       help = "organism: hsapiens or mmusculus [default: %default]"
-    )
+    ),
+    opt_prefix()
   )
   )
 }
@@ -46,6 +49,7 @@ ora_simplify_run <- function(opt) {
   ONT <- toupper(opt$ont)
   direction <- tolower(opt$direction)
   organism <- opt$organism
+  prefix <- if (is.null(opt$prefix)) "" else as.character(opt$prefix)
   fdr_cutoff <- 0.05
 
   organism_to_orgdb <- function(organism) {
@@ -126,6 +130,7 @@ ora_simplify_run <- function(opt) {
 
   message("Input:     ", input_file)
   message("Output:    ", RESULTS_DIR)
+  message("Prefix:    ", if (nzchar(prefix)) prefix else "(none)")
   message("Organism:  ", organism, " (", orgdb_pkg, ")")
   message("ONT:       ", ONT)
   message("N:         ", top_n)
@@ -172,9 +177,10 @@ ora_simplify_run <- function(opt) {
     db = orgdb_pkg
   )
 
-  plot_file <- file.path(RESULTS_DIR, paste0("GO_", ONT, "_", direction, "_simplifyGO.pdf"))
-  cluster_csv <- file.path(RESULTS_DIR, paste0("GO_", ONT, "_", direction, "_simplifyGO_clusters.csv"))
-  sim_rds <- file.path(RESULTS_DIR, paste0("GO_", ONT, "_", direction, "_similarity.rds"))
+  stem <- paste0("GO_", ONT, "_", direction, "_simplifyGO")
+  plot_file <- file.path(RESULTS_DIR, ora_out_name(paste0(stem, ".pdf"), prefix))
+  cluster_csv <- file.path(RESULTS_DIR, ora_out_name(paste0(stem, "_clusters.csv"), prefix))
+  sim_rds <- file.path(RESULTS_DIR, ora_out_name(paste0("GO_", ONT, "_", direction, "_similarity.rds"), prefix))
 
   set.seed(123)
   pdf(plot_file, width = 12, height = 10)

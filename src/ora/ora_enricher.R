@@ -1,31 +1,31 @@
 # Usage:
-#   Rscript ora_enricher.R --in edger.csv --outdir res [--fdr 0.05] [--log2fc 1] [--direction no] [--ont all] [--gmt FILE] [--prefix NAME]
+#   Rscript ora_enricher.R --in edger.csv --outdir res [--fdr 0.05] [--log2fc 1] [--direction no] [--gmt FILE] [--prefix NAME]
 #
 # Select significant DEGs by FDR and |log2FC|, then run clusterProfiler::enricher.
 # This is the local hypergeometric ORA used by gseapy.enrich.
 # With --direction yes, up- and down-regulated genes are tested separately.
 # With --direction no (default), all significant genes are tested together.
-# Without --gmt, gene sets are MSigDB C5 GO (BP, MF, and CC, or the ontology
-# given by --ont). --gmt supplies a custom GMT library instead.
+# Without --gmt, gene sets are MSigDB C5 GO for BP, MF, and CC.
+# --gmt supplies a custom GMT library instead.
 # The background is the set of measured genes in the DE table.
 # --prefix is prepended to output file names; default is none.
 
 ora_enricher_options <- function() {
   list(
-    usage = "Rscript ora_enricher.R --in FILE --outdir DIR [--fdr 0.05] [--log2fc 1] [--direction no] [--ont all] [--gmt FILE] [--prefix NAME]",
+    usage = "Rscript ora_enricher.R --in FILE --outdir DIR [--fdr 0.05] [--log2fc 1] [--direction no] [--gmt FILE] [--prefix NAME]",
     description = paste(
     "Run over-representation analysis (ORA) with clusterProfiler::enricher.",
     "This is the R counterpart of gseapy.enrich: a local hypergeometric test",
     "against a gene-set library, with the measured genes as the background.",
     "With --direction yes, significant genes are split into up- and down-regulated sets.",
     "With --direction no, all significant genes are tested together.",
-    "Without --gmt, MSigDB GO gene sets are used (BP, MF, and CC, or --ont).",
+    "Without --gmt, MSigDB GO gene sets for BP, MF, and CC are used.",
     "With --gmt, that GMT file is the gene-set library.",
     "",
     "Examples:",
     "  Rscript ora_enricher.R --in edger.csv --outdir res",
     "  Rscript ora_enricher.R --in edger.csv --outdir res --fdr 0.05 --log2fc 1",
-    "  Rscript ora_enricher.R --in edger.csv --outdir res --direction yes --ont BP",
+    "  Rscript ora_enricher.R --in edger.csv --outdir res --direction yes",
     "  Rscript ora_enricher.R --in edger.csv --outdir res --gmt genesets.gmt --prefix custom",
     sep = "\n"
   ),
@@ -36,18 +36,13 @@ ora_enricher_options <- function() {
     opt_fdr(),
     opt_log2fc(),
     opt_organism(help = "organism for MSigDB GO gene sets: hsapiens or mmusculus [default: %default]"),
-    opt_ont(
-      "all",
-      metavar = "BP|CC|MF|all",
-      help = "MSigDB GO ontology, or all for BP+CC+MF. Ignored when --gmt is set [default: %default]"
-    ),
     make_option(
       "--gmt",
       type = "character",
       default = NULL,
       dest = "gmt",
       metavar = "FILE",
-      help = "GMT gene-set file. When omitted, MSigDB GO gene sets are used"
+      help = "GMT gene-set file. When omitted, MSigDB GO gene sets for BP, CC, and MF are used"
     ),
     opt_direction(
       "no",
@@ -74,7 +69,6 @@ ora_enricher_run <- function(opt) {
   fdr_cutoff <- opt$fdr_cutoff
   log2fc_cutoff <- opt$log2fc_cutoff
   organism <- tolower(opt$organism)
-  ont_arg <- toupper(opt$ont)
   gmt_file <- opt$gmt
   split_direction <- tolower(opt$direction)
   prefix <- if (is.null(opt$prefix)) "" else as.character(opt$prefix)
@@ -334,9 +328,6 @@ ora_enricher_run <- function(opt) {
   if (use_gmt && !file.exists(gmt_file)) {
     stop("GMT file not found: ", gmt_file, call. = FALSE)
   }
-  if (!use_gmt && !ont_arg %in% c(GO_ONTS, "ALL")) {
-    stop("--ont must be BP, CC, MF, or all", call. = FALSE)
-  }
 
   suppressPackageStartupMessages({
     library(clusterProfiler)
@@ -404,13 +395,12 @@ ora_enricher_run <- function(opt) {
     message("Gene sets: ", sets$label, " (", sets$id_type, " ids)")
   } else {
     msig_org <- organism_to_msig(organism)
-    onts <- if (ont_arg == "ALL") GO_ONTS else ont_arg
     message(
       "Organism:  ", organism,
       " (", msig_org$species, ", MSigDB ", msig_org$db_species, ")"
     )
-    message("Ontology:  ", paste(onts, collapse = ", "))
-    sets <- load_go_sets(onts, msig_org)
+    message("Ontology:  ", paste(GO_ONTS, collapse = ", "))
+    sets <- load_go_sets(GO_ONTS, msig_org)
   }
 
   if (sets$id_type == "ensembl") {

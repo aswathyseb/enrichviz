@@ -8,6 +8,8 @@ ONT  ?= BP
 # Functional analysis results
 ORA_IN  ?= data/gprof.csv
 
+PREFIX ?=
+
 
 #
 # Start from differential expression analysis
@@ -15,11 +17,11 @@ ORA_IN  ?= data/gprof.csv
 
 # Run gprofiler and create all ora plots
 ora:
-	make -f ora.mk IN=${IN} OUT=${OUT} ONT=${ONT} plots
+	make -f ora.mk IN=${IN} OUT=${OUT} ONT=${ONT} PREFIX=${PREFIX} plots
 
 # Run fgsea and create all gsea plots
 gsea:
-	make -f gsea.mk IN=${IN} OUT=${OUT} ONT=${ONT} plots
+	make -f gsea.mk IN=${IN} OUT=${OUT} ONT=${ONT} PREFIX=${PREFIX} plots
 
 #
 # Start from functional analysis results
@@ -27,5 +29,5 @@ gsea:
 
 # Create all ora plots starting from gprofiler GO results
 ora_plots:
-	make -f ora.mk ORA=${ORA_IN} OUT=${OUT} ONT=${ONT} DIRECTION=none plots
+	make -f ora.mk ORA=${ORA_IN} OUT=${OUT} ONT=${ONT} DIRECTION=none PREFIX=${PREFIX} plots
 

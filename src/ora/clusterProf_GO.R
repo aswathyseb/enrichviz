@@ -1,14 +1,15 @@
 # Usage:
-#   Rscript clusterProf_GO.R --in edger.csv --outdir res [--fdr 0.05] [--log2fc 1] [--direction no]
+#   Rscript clusterProf_GO.R --in edger.csv --outdir res [--fdr 0.05] [--log2fc 1] [--direction no] [--prefix NAME]
 #
 # Select significant DEGs by FDR and |log2FC|, then run clusterProfiler
 # enrichGO across GO BP, MF, and CC. With --direction yes, up- and
 # down-regulated genes are tested separately; with --direction no
 # (default), all significant genes are tested together.
+# --prefix is prepended to output file names; default is none.
 
 clusterprof_go_options <- function() {
   list(
-    usage = "Rscript clusterProf_GO.R --in FILE --outdir DIR [--fdr 0.05] [--log2fc 1] [--direction no]",
+    usage = "Rscript clusterProf_GO.R --in FILE --outdir DIR [--fdr 0.05] [--log2fc 1] [--direction no] [--prefix NAME]",
     description = paste(
     "Run GO over-representation analysis (ORA) with clusterProfiler::enrichGO.",
     "With --direction yes, significant genes are split into up- and down-regulated sets.",
@@ -19,6 +20,7 @@ clusterprof_go_options <- function() {
     "  Rscript clusterProf_GO.R --in edger_cell_sph_vs_BHS.csv --outdir res",
     "  Rscript clusterProf_GO.R --in edger.csv --outdir res --fdr 0.05 --log2fc 1",
     "  Rscript clusterProf_GO.R --in edger.csv --outdir res --direction yes",
+    "  Rscript clusterProf_GO.R --in young.csv --outdir res --prefix young",
     sep = "\n"
   ),
     require_input = TRUE,
@@ -35,7 +37,8 @@ clusterprof_go_options <- function() {
         "split ORA by regulation direction: yes = up and down separately,",
         "no = all significant genes together [default: %default]"
       )
-    )
+    ),
+    opt_prefix()
   )
   )
 }
@@ -51,6 +54,16 @@ clusterprof_go_run <- function(opt) {
   log2fc_cutoff <- opt$log2fc_cutoff
   organism <- tolower(opt$organism)
   split_direction <- tolower(opt$direction)
+  prefix <- if (is.null(opt$prefix)) "" else as.character(opt$prefix)
+
+  out_name <- function(stem) {
+    if (!nzchar(prefix)) {
+      return(stem)
+    }
+    prefix <- gsub("[/\\\\]", "", prefix)
+    sep <- if (grepl("[_-]$", prefix)) "" else "_"
+    paste0(prefix, sep, stem)
+  }
 
   organism_to_orgdb <- function(organism) {
     orgdb_map <- c(
@@ -204,6 +217,7 @@ clusterprof_go_run <- function(opt) {
 
   message("Input:     ", input_file)
   message("Output:    ", RESULTS_DIR)
+  message("Prefix:    ", if (nzchar(prefix)) prefix else "(none)")
   message("Organism:  ", organism, " (", orgdb_name, ")")
   message("DEG FDR:   ", fdr_cutoff)
   message("DEG log2FC:", log2fc_cutoff)
@@ -257,9 +271,9 @@ clusterprof_go_run <- function(opt) {
   gene_cols <- c("ensembl_gene", "gene_symbol", "log2FoldChange", "PValue", "FDR")
   gene_cols <- gene_cols[gene_cols %in% colnames(gene_map)]
 
-  ora_csv <- file.path(RESULTS_DIR, "clusterProf_GO.csv")
-  ora_all_csv <- file.path(RESULTS_DIR, "clusterProf_GO_all.csv")
-  ora_rds <- file.path(RESULTS_DIR, "clusterProf_GO.rds")
+  ora_csv <- file.path(RESULTS_DIR, out_name("clusterProf_GO.csv"))
+  ora_all_csv <- file.path(RESULTS_DIR, out_name("clusterProf_GO_all.csv"))
+  ora_rds <- file.path(RESULTS_DIR, out_name("clusterProf_GO.rds"))
 
   params <- list(
     input_file = input_file,
@@ -268,6 +282,7 @@ clusterprof_go_run <- function(opt) {
     fdr_cutoff = fdr_cutoff,
     log2fc_cutoff = log2fc_cutoff,
     direction = split_direction,
+    prefix = prefix,
     ora_fdr = ORA_FDR,
     ontologies = GO_ONTS,
     keyType = "ENSEMBL",
@@ -286,8 +301,8 @@ clusterprof_go_run <- function(opt) {
     message("Upregulated:          ", nrow(up_genes))
     message("Downregulated:        ", nrow(down_genes))
 
-    up_genes_csv <- file.path(RESULTS_DIR, "ora_genes_up.csv")
-    down_genes_csv <- file.path(RESULTS_DIR, "ora_genes_down.csv")
+    up_genes_csv <- file.path(RESULTS_DIR, out_name("ora_genes_up.csv"))
+    down_genes_csv <- file.path(RESULTS_DIR, out_name("ora_genes_down.csv"))
     write_csv(select(up_genes, all_of(gene_cols)), up_genes_csv)
     write_csv(select(down_genes, all_of(gene_cols)), down_genes_csv)
     gene_csvs <- c(up_genes_csv, down_genes_csv)
@@ -303,7 +318,7 @@ clusterprof_go_run <- function(opt) {
     enrich_res <- list(up = enrich_up, down = enrich_down, params = params)
     term_counts <- c(up = n_enrich_terms(enrich_up), down = n_enrich_terms(enrich_down))
   } else {
-    all_genes_csv <- file.path(RESULTS_DIR, "ora_genes_all.csv")
+    all_genes_csv <- file.path(RESULTS_DIR, out_name("ora_genes_all.csv"))
     write_csv(select(deg_sig, all_of(gene_cols)), all_genes_csv)
     gene_csvs <- all_genes_csv
 

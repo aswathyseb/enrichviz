@@ -19,7 +19,7 @@ enrichviz ora_clusterprofiler --in edger.csv --outdir ora_out --direction yes
 ```
 
 * `ora_gprofiler` : tests GO enrichment with gprofiler2. \
-* `ora_enricher`: tests GO enrichment with `clusterProfiler::enricher`. Without `--gmt` it uses MSigDB GO gene sets. With `--gmt` it uses that GMT file as the gene-set library. 
+* `ora_enricher`: tests GO enrichment with `clusterProfiler::enricher`. Without `--gmt` it uses MSigDB GO gene sets for BP, CC, and MF. With `--gmt` it uses that GMT file as the gene-set library. 
 * `ora_clusterprofiler`: runs `clusterProfiler::enrichGO` on the DEG selection. 
 
 When --direction yes is specified, ORA is run separately on up- and down-regulated genes; --direction no (the default) tests all significant genes together. 
@@ -172,7 +172,7 @@ The analysis requires `--organism` to specify the appropriate OrgDb.
 enrichviz ora_simplify --in ora_out/gprofiler_GO.csv --outdir ora_out --ont BP --direction up --organism hsapiens
 ```
 
-**Output:** `GO_BP_up_simplifyGO.pdf` and a cluster table.
+**Output:** `GO_BP_up_simplifyGO.pdf`, a cluster table, and a similarity RDS file. With `--prefix NAME`, that name is prepended.
 
 
 ## Input file processing
