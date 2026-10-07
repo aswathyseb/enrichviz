@@ -2,13 +2,13 @@
 
 `enrichviz` provides R scripts for the visualization of functional enrichment analysis results.
 
-It supports two complementary approaches:
+It supports two complementary approaches and generate publication-ready PDF plots.
 
 
 - **Over-representation analysis (ORA):** identifies functions that occur more often among significant genes than expected by chance.
 - **Gene set enrichment analysis (GSEA):** identifies functions whose genes are concentrated toward the top or bottom of a ranked list of all tested genes.
 
-Both ORA and GSEA scripts support **GO** and **KEGG** based results and generate publication-ready PDF plots together with the tables used to create them.
+Both ORA and GSEA scripts support **GO** and **KEGG** based 
 
 Detailed guides:
 
@@ -45,7 +45,11 @@ enrichviz --help
 
 ## Start with differential expression table
 
-Run ORA with gprofiler on a differential expression result table and create a table with  GO functional terms
+If you don't have the functional analysis done, you can start with a differential expression result table.
+
+Enrichviz provides tools to create ORA or GSEA enrichment results.
+
+The command shows to run ORA with gprofiler on a differential expression result table and create a table with  GO functional terms
 
 ```bash
 enrichviz ora_gprofiler --in data/edger.csv --outdir res --direction yes
@@ -55,6 +59,9 @@ It produces gprofiler output as a `csv` file in `outdir res`.
 
 If output file prefix is not specified, the output file will be named as `res/gprofiler_GO.csv`
 
+## Start with ORA/GSEA result table and plot the results.
+
+Enrichviz supports multiple visualization tools. For most of the ORA plotting tools, the only required columns in the input file are `Term` and `Significance`.  `Upset plot` and sematic-space plot (`ssplot`) also need a gene column (eg: geneID,Genes,intersection_genes)
 
 Create a barplot of the top terms
 
