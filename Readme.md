@@ -101,6 +101,7 @@ Analysis commands write enrichment tables. Plot commands read those tables and w
 | `enrichviz ora_gprofiler` | Run GO enrichment with gProfiler |
 | `enrichviz ora_enricher` | Run ORA with clusterProfiler enricher (MSigDB GO or a GMT file) |
 | `enrichviz ora_clusterprofiler` | Run GO enrichment with clusterProfiler enrichGO |
+| `enrichviz ora_clusterprofiler_kegg` | Run KEGG enrichment with clusterProfiler enrichKEGG |
 
 ### ORA plots
 

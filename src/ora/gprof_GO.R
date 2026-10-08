@@ -131,7 +131,8 @@ ora_gprofiler_run <- function(opt) {
       user_threshold = ORA_FDR,
       custom_bg = background,
       domain_scope = "custom_annotated",
-      significant = FALSE,
+      #significant = FALSE,
+      significant = TRUE,
       evcodes = TRUE,
       ordered_query = FALSE
     )

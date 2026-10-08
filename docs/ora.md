@@ -16,11 +16,14 @@ enrichviz ora_gprofiler --in edger.csv --outdir ora_out --direction yes
 enrichviz ora_enricher --in edger.csv --outdir ora_out --direction yes
 # Run ORA with clusterprofiler
 enrichviz ora_clusterprofiler --in edger.csv --outdir ora_out --direction yes
+# Run KEGG ORA with clusterProfiler
+enrichviz ora_clusterprofiler_kegg --in edger.csv --outdir ora_out --direction yes
 ```
 
 * `ora_gprofiler` : tests GO enrichment with gprofiler2. \
 * `ora_enricher`: tests GO enrichment with `clusterProfiler::enricher`. Without `--gmt` it uses MSigDB GO gene sets for BP, CC, and MF. With `--gmt` it uses that GMT file as the gene-set library. 
-* `ora_clusterprofiler`: runs `clusterProfiler::enrichGO` on the DEG selection. 
+* `ora_clusterprofiler`: runs `clusterProfiler::enrichGO` on the DEG selection.
+* `ora_clusterprofiler_kegg`: runs `clusterProfiler::enrichKEGG` on the DEG selection. Genes are mapped from Ensembl to Entrez, and the background is the measured genes that map. 
 
 When --direction yes is specified, ORA is run separately on up- and down-regulated genes; --direction no (the default) tests all significant genes together. 
  
