@@ -1,6 +1,6 @@
 # Visualization of Enriched Terms from GSEA
 
-Gene Set Enrichment Analysis (GSEA) tests whether genes belonging to a biological function are concentrated toward the top or bottom of a ranked gene list. Unlike over-representation analysis (ORA), GSEA uses all tested genes rather than a predefined list of differentially expressed genes.
+Pre-ranked Gene Set Enrichment Analysis (GSEA pre-rank) tests whether genes belonging to a biological function are concentrated toward the top or bottom of a ranked gene list. Unlike over-representation analysis (ORA), GSEA uses all tested genes rather than a predefined list of differentially expressed genes.
 
 GSEA analysis commands write enrichment tables. GSEA plot commands read those tables and draw the figures below. All plotting commands accept GO or KEGG results from fgsea or clusterProfiler, as CSV, TSV, or RDS. 
 
@@ -11,9 +11,11 @@ enrichviz gsea_go --in edger.csv --outdir gsea_out --ont all
 enrichviz gsea_kegg --in edger.csv --outdir gsea_out
 ```
 
-`enrichviz gsea_kegg` uses MSigDB C2 KEGG Legacy pathways by default (`--kegg legacy`, IDs such as `hsa02010`). Pass `--kegg medicus` for KEGG Medicus. Output files are `ranked_genes_KEGG.csv` / `.rds` and `fgsea_KEGG.csv` / `.rds`. Mouse runs map human KEGG sets to mouse orthologs. clusterProfiler KEGG tables (for example `gseKEGG.csv`) can be plotted the same way.
+`enrichviz gsea_go` runs GO GSEA with fgsea and MSigDB C5 gene sets.
 
-`--ont BP|CC|MF` selects a GO ontology. KEGG results skip that filter (`--ont KEGG` or `--ont all`). Optional `--prefix NAME` is prepended to plot file names. 
+`enrichviz gsea_kegg` uses MSigDB C2 KEGG Legacy pathways by default (`--kegg legacy`, IDs such as `hsa02010`). Pass `--kegg medicus` for KEGG Medicus. Mouse datasets map human KEGG sets to mouse orthologs. clusterProfiler KEGG tables (for example `gseKEGG.csv`) can be plotted the same way.
+
+In all plotting scripts, `--ont BP|CC|MF` selects a GO ontology. KEGG results skip that filter (`--ont KEGG` or `--ont all`). Optional `--prefix NAME` is prepended to plot file names. 
 
 ## Gene ranking
 
@@ -69,11 +71,11 @@ Barplots and lollipop plots provide a concise overview of the strongest enriched
 
 ---
 
-# 1. Barplot (`enrichviz gsea_barplot`)
+## 1. Barplot (`enrichviz gsea_barplot`)
 
 The barplot shows the terms with the strongest significant positive and negative enrichment. Both GO and KEGG results from GSEA are supported.
 
-## What is shown
+### What is shown
 
 - **x-axis:** NES
 - **y-axis:** terms
@@ -84,7 +86,7 @@ Negative NES values extend to the left of zero and positive values to the right.
 
 ![Barplot of top GO BP GSEA terms](images/gsea/gsea_BP_barplot.png)
 
-## How to run
+### How to run
 
 ```bash
 enrichviz gsea_barplot --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
@@ -102,11 +104,11 @@ With `--prefix NAME`, files are named `NAME_gsea_BP_barplot.pdf`. KEGG tables wr
 
 ---
 
-# 2. Lollipop plot (`enrichviz gsea_lollipop`)
+## 2. Lollipop plot (`enrichviz gsea_lollipop`)
 
 The lollipop plot shows enrichment strength, statistical significance, and gene-set size for the selected terms. Both GO and KEGG results from GSEA are supported.
 
-## What is shown
+### What is shown
 
 - **x-axis:** NES
 - **y-axis:** terms
@@ -117,7 +119,7 @@ Points to the right of zero have positive NES and points to the left have negati
 
 ![Lollipop plot of top GO BP GSEA terms](images/gsea/gsea_BP_lollipop.png)
 
-## How to run
+### How to run
 
 ```bash
 enrichviz gsea_lollipop --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
@@ -135,7 +137,7 @@ With `--prefix NAME`, files are named `NAME_gsea_BP_lollipop.pdf`. KEGG tables w
 
 ---
 
-# 3. Dotplot (`enrichviz gsea_dotplot`)
+## 3. Dotplot (`enrichviz gsea_dotplot`)
 
 The dotplot shows the contribution of leading-edge genes to each enriched term. Both GO and KEGG results from GSEA are supported.
 
@@ -145,7 +147,7 @@ The **leading-edge ratio** is calculated as:
 
 The ratio ranges from 0 to 1. For visualization, the sign of NES is assigned to the ratio so that positive and negative enrichment appear on opposite sides of zero.
 
-## What is shown
+### What is shown
 
 - **x-axis:** signed leading-edge ratio
 - **y-axis:** terms
@@ -158,7 +160,7 @@ Term selection is based on |NES|, but terms are displayed according to their sig
 
 ![Dotplot of top GO BP GSEA terms](images/gsea/gsea_BP_dotplot.png)
 
-## How to run
+### How to run
 
 ```bash
 enrichviz gsea_dotplot --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
@@ -176,11 +178,11 @@ With `--prefix NAME`, files are named `NAME_gsea_BP_dotplot.pdf`. KEGG tables wr
 
 ---
 
-# 4. Ridgeplot (`enrichviz gsea_ridgeplot`)
+## 4. Ridgeplot (`enrichviz gsea_ridgeplot`)
 
 The ridgeplot shows the distribution of ranking scores among the leading-edge genes for each enriched term. It requires both the GSEA result and the ranked gene table used for GSEA. Both GO and KEGG results from GSEA are supported.
 
-## What is shown
+### What is shown
 
 - **x-axis:** ranking score of each leading-edge gene
 - **y-axis:** terms
@@ -195,7 +197,7 @@ The terms are ordered by NES. Statistical significance is represented by the fil
 
 ![Ridgeplot of leading-edge rank scores for top GO BP GSEA terms](images/gsea/gsea_BP_ridgeplot.png)
 
-## How to run
+### How to run
 
 ```bash
 enrichviz gsea_ridgeplot \
@@ -221,13 +223,13 @@ With `--prefix NAME`, files are named `NAME_gsea_BP_ridgeplot.pdf`. KEGG tables 
 
 ---
 
-# 5. Volcano plot (`enrichviz gsea_volcano`)
+## 5. Volcano plot (`enrichviz gsea_volcano`)
 
 The GSEA volcano plot shows enrichment strength and statistical significance across all tested terms. Both GO and KEGG results from fgsea or clusterProfiler are supported.
 
 Volcano plot plots all terms as points.  `-n` controls the number of labeled terms, not the number of points displayed.
 
-## What is shown
+### What is shown
 
 - **x-axis:** NES
 - **y-axis:** −log₁₀(`p.adjust`)
@@ -244,7 +246,7 @@ fgsea tables usually include non-significant terms, so the grey cloud below the 
 
 ![Volcano plot of GO BP GSEA terms](images/gsea/gsea_BP_volcano.png)
 
-## How to run
+### How to run
 
 ```bash
 enrichviz gsea_volcano --in gsea_out/fgsea_GO_all.csv --outdir gsea_out --n 10 --ont BP
@@ -262,11 +264,11 @@ With `--prefix NAME`, files are named `NAME_gsea_BP_volcano.pdf`. KEGG tables wr
 
 ---
 
-# 6. Running ES / NES plot (`enrichviz gsea_nes`)
+## 6. Running ES / NES plot (`enrichviz gsea_nes`)
 
 The running enrichment-score plot shows how the enrichment signal for one GO or KEGG term develops across the complete ranked gene list. Use `--GO` or `--term` with a GO ID (`GO:0051607`) or a KEGG ID (`hsa03010`).
 
-## What is shown
+### What is shown
 
 The plot contains two main panels and can optionally include an expression heatmap.
 
@@ -292,7 +294,7 @@ Genes and samples are not clustered. Heatmap colors represent relative expressio
 
 ![Running ES / NES plot for GO:0051607](images/gsea/gsea_GO_0051607_NES.png)
 
-## How to run
+### How to run
 
 Using the GSEA result alone:
 
@@ -335,11 +337,11 @@ The `--rank` argument is required only when the supplied RDS does not contain th
 
 ---
 
-# 7. Comparing NES profiles across conditions (`enrichviz gsea_nes-compare`)
+## 7. Comparing NES profiles across conditions (`enrichviz gsea_nes-compare`)
 
 The NES comparison plot shows the enrichment trajectory of the same GO or KEGG term across multiple GSEA analyses. Use `--GO` or `--term` with the term ID.
 
-## What is shown
+### What is shown
 
 For each condition, the plot contains:
 
@@ -357,7 +359,7 @@ The comparison requires at least two GSEA inputs. RDS files are preferred becaus
 
 ![NES compare plot for GO:0051607 across conditions](images/gsea/gsea_GO_0051607_NES_compare.png)
 
-## How to run
+### How to run
 
 Inputs can be assigned condition names directly:
 
@@ -399,3 +401,60 @@ With `--prefix NAME`, files are named `NAME_gsea_GO_0051607_NES_compare.pdf`. KE
 The output table reports NES and FDR for the selected term in each condition.
 
 
+## Input File Processing
+
+Plot commands accept GO or KEGG GSEA tables from fgsea or clusterProfiler as CSV, TSV, TXT, or RDS. The original file is not edited. Each plot reads the table through one normalizer, which renames columns from either tool onto a shared set of names, then selects terms with `--ont` and an FDR cutoff of 0.05.
+
+
+### Required columns
+
+Two kinds of column are required, regardless of which tool produced the file. Header names are matched exactly, in the order listed.
+
+| Column | Accepted headers |
+|---|---|
+| Term | `ID`, `pathway`, `term_id`, `GO_ID`, `go_id`, or a description such as `Description`, `term_name`, `pathway`, or `gs_name` |
+| Significance | An adjusted p-value (`p.adjust`, `padj`, `FDR`, `qvalue`) or a raw p-value (`pvalue`, `pval`, `p_value`, `p.value`) |
+| NES | `NES` |
+
+
+An fgsea table satisfies this with `pathway`, `NES`, and `padj`. A clusterProfiler `gseGO` or `gseKEGG` table satisfies it with `ID`, `NES`, and `p.adjust`.
+
+If the term-id column is missing, the description is used as the id. If only a raw p-value is present, it is copied into `p.adjust` and used for the FDR cutoff. A table with no `NES`, or with neither an adjusted nor a raw p-value, stops before a plot is written. Rows with a missing id or a missing or non-finite `NES` are dropped.
+
+### Optional columns
+
+Other columns are optional. When present, they are copied onto the shared names below. When absent, the plot still runs and that column is left empty.
+
+| Shared column | Taken from |
+|---|---|
+| `ID`, `Description` | term id and term name. Names that contain underscores, such as `GOBP_DEFENSE_RESPONSE_TO_VIRUS`, are rewritten as sentence case |
+| `p.adjust`, `pvalue` | adjusted and raw p-values. If only one exists, it fills both columns |
+| `NES` | `NES` |
+| `ES` | `ES` or `enrichmentScore` |
+| `setSize` | `setSize` or `size` |
+| `ONTOLOGY` | `ONTOLOGY` or `ontology` |
+| `geneID` | `leadingEdge`, `core_enrichment`, or `geneID`. A list column or comma-separated text is rewritten as `/`-separated gene symbols |
+
+From `geneID` and `setSize` the normalizer adds `leadingEdgeCount` and `leadingEdgeRatio` (`leadingEdgeCount / setSize`). The dotplot uses that ratio on the x-axis and falls back to `NES` when it is missing. The ridgeplot and the running-ES plot need `geneID`.
+
+### Which terms are plotted
+
+The database is read from the term ids, not from the file name. If at least half of the ids match `GO:#####`, the table is treated as GO. If at least half match a KEGG id such as `hsa03010`, it is treated as KEGG. `ONTOLOGY` values of `BP`, `CC`, or `MF` also mark a GO table, and `KEGG` marks a KEGG table.
+
+`--ont` then chooses which rows are plotted:
+
+- `BP`, `CC`, or `MF` keeps that GO ontology when an `ONTOLOGY` column contains it. If the column is empty, the requested ontology is stamped onto the table.
+- KEGG tables skip ontology filtering. `--ont` for a GO ontology is ignored and every pathway is kept.
+
+Overview plots (barplot, lollipop, dotplot, and ridgeplot) then keep terms with `p.adjust < 0.05`. The volcano plot keeps every tested term and uses the cutoff only to choose labels.
+
+### Ranked-gene file
+
+The ridgeplot and the running-ES plot also take `--rank`. That file is a CSV, TSV, or RDS. An RDS may be a named numeric vector, a list with `$stats` or `$gene_list`, or a table.
+
+| Column | Accepted headers |
+|---|---|
+| Score | `rank_score`, `stat`, `ranking_metric`, or `log2FoldChange` |
+| Gene | `gene_symbol`, `gene`, `symbol`, or `SYMBOL`, and/or `ensembl_gene`, `ensembl`, `ENSEMBL`, or `name` |
+
+The ranked tables written by `gsea_go` and `gsea_kegg` already use `ensembl_gene`, `gene_symbol`, and `rank_score`. Leading-edge genes are joined to those scores case-insensitively. Ensembl ids have a version suffix such as `.1` removed before the join. `--rank` is required when the GSEA RDS does not already contain the ranked list. For a clusterProfiler KEGG CSV, pass `ranked_genes_KEGG.csv` (or the matching RDS) so gene symbols can be matched to Ensembl ids.

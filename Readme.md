@@ -81,7 +81,14 @@ Without a shell, put `--` before the command so pixi does not treat script flags
 pixi run enrichviz -- ora_barplot -h
 ```
 
-Details on each plot are given in  [ORA visualization guide](docs/ora.md)
+
+
+For plot-specific options and other details, see:
+
+- [ORA visualization guide](docs/ora.md)
+- [GSEA visualization guide](docs/gsea.md)
+
+
 
 ## Available commands
 
@@ -167,10 +174,6 @@ For ORA, the dotplot represents the query gene ratio. For GSEA, it represents th
 - **Running ES/NES plot:** shows the enrichment trajectory of an individual term.
 - **NES comparison:** compares the same term across multiple GSEA analyses.
 
-For plot-specific options, term-selection rules, and example commands, see:
-
-- [ORA visualization guide](docs/ora.md)
-- [GSEA visualization guide](docs/gsea.md)
 
 ## License
 
