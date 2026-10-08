@@ -240,8 +240,8 @@ ora_gprofiler_run <- function(opt) {
   gene_cols <- gene_cols[gene_cols %in% colnames(gene_map)]
 
   ora_csv <- file.path(RESULTS_DIR, out_name("gprofiler_GO.csv"))
-  ora_all_csv <- file.path(RESULTS_DIR, out_name("gprofiler_GO_all.csv"))
-  ora_rds <- file.path(RESULTS_DIR, out_name("gprofiler_GO.rds"))
+  # ora_all_csv <- file.path(RESULTS_DIR, out_name("gprofiler_GO_all.csv"))
+  # ora_rds <- file.path(RESULTS_DIR, out_name("gprofiler_GO.rds"))
 
   params <- list(
     input_file = input_file,
@@ -311,8 +311,8 @@ ora_gprofiler_run <- function(opt) {
   }
 
   write_csv(sig_table, ora_csv)
-  write_csv(result_table, ora_all_csv)
-  saveRDS(gost_res, ora_rds)
+  # write_csv(result_table, ora_all_csv)
+  # saveRDS(gost_res, ora_rds)
 
   message("================")
   message("GO terms (gprofiler FDR < ", ORA_FDR, ")")
@@ -323,12 +323,12 @@ ora_gprofiler_run <- function(opt) {
   }
   message("CSV files written:")
   message("  ", ora_csv)
-  message("  ", ora_all_csv)
+  # message("  ", ora_all_csv)
   for (gene_csv in gene_csvs) {
     message("  ", gene_csv)
   }
-  message("RDS file written:")
-  message("  ", ora_rds)
+  # message("RDS file written:")
+  # message("  ", ora_rds)
 }
 
 if (sys.nframe() == 0L) {
