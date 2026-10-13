@@ -5,6 +5,7 @@
 # enrichGO across GO BP, MF, and CC. With --direction yes, up- and
 # down-regulated genes are tested separately; with --direction no
 # (default), all significant genes are tested together.
+# Background is the enrichGO default: genes annotated in the organism database.
 # --prefix is prepended to output file names; default is none.
 
 clusterprof_go_options <- function() {
@@ -14,7 +15,8 @@ clusterprof_go_options <- function() {
     "Run GO over-representation analysis (ORA) with clusterProfiler::enrichGO.",
     "With --direction yes, significant genes are split into up- and down-regulated sets.",
     "With --direction no, all significant genes are tested together.",
-    "All GO ontologies (BP, MF, CC) are tested against the measured-gene background.",
+    "All GO ontologies (BP, MF, CC) are tested against the enrichGO default",
+    "background: genes annotated in the organism database.",
     "",
     "Examples:",
     "  Rscript clusterProf_GO.R --in edger_cell_sph_vs_BHS.csv --outdir res",
@@ -175,9 +177,8 @@ clusterprof_go_run <- function(opt) {
       relocate(direction, ONTOLOGY, ID, Description, p.adjust)
   }
 
-  run_enrichGO <- function(gene_ids, background, direction) {
+  run_enrichGO <- function(gene_ids, direction) {
     gene_ids <- unique(gene_ids)
-    background <- unique(background)
 
     if (length(gene_ids) == 0) {
       message("Skipping ", direction, ": no significant genes at the chosen cutoffs.")
@@ -194,7 +195,6 @@ clusterprof_go_run <- function(opt) {
       tryCatch(
         enrichGO(
           gene = gene_ids,
-          universe = background,
           OrgDb = OrgDb,
           keyType = "ENSEMBL",
           ont = ont,
@@ -247,15 +247,13 @@ clusterprof_go_run <- function(opt) {
     arrange(desc(abs(log2FoldChange))) %>%
     distinct(ensembl_gene, .keep_all = TRUE)
 
-  background <- gene_map$ensembl_gene
-
   deg_sig <- gene_map %>%
     filter(
       FDR < fdr_cutoff,
       abs(log2FoldChange) >= log2fc_cutoff
     )
 
-  message("Background genes:     ", length(background))
+  message("Background:           genes annotated in ", orgdb_name)
   message("Total significant DEGs: ", nrow(deg_sig))
 
   if (nrow(deg_sig) == 0) {
@@ -286,7 +284,7 @@ clusterprof_go_run <- function(opt) {
     ora_fdr = ORA_FDR,
     ontologies = GO_ONTS,
     keyType = "ENSEMBL",
-    background_n = length(background)
+    universe = NULL
   )
 
   gene_csvs <- character()
@@ -307,8 +305,8 @@ clusterprof_go_run <- function(opt) {
     write_csv(select(down_genes, all_of(gene_cols)), down_genes_csv)
     gene_csvs <- c(up_genes_csv, down_genes_csv)
 
-    enrich_up <- run_enrichGO(up_genes$ensembl_gene, background, "up")
-    enrich_down <- run_enrichGO(down_genes$ensembl_gene, background, "down")
+    enrich_up <- run_enrichGO(up_genes$ensembl_gene, "up")
+    enrich_down <- run_enrichGO(down_genes$ensembl_gene, "down")
 
     result_table <- bind_rows(
       enrich_to_table(enrich_up, "up"),
@@ -322,7 +320,7 @@ clusterprof_go_run <- function(opt) {
     write_csv(select(deg_sig, all_of(gene_cols)), all_genes_csv)
     gene_csvs <- all_genes_csv
 
-    enrich_all <- run_enrichGO(deg_sig$ensembl_gene, background, "none")
+    enrich_all <- run_enrichGO(deg_sig$ensembl_gene, "none")
 
     result_table <- enrich_to_table(enrich_all, "none")
     enrich_res <- list(none = enrich_all, params = params)

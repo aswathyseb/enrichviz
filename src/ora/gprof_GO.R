@@ -5,6 +5,9 @@
 # across GO BP, MF, and CC. With --direction yes, up- and down-regulated
 # genes are tested separately; with --direction no (default), all
 # significant genes are tested together.
+# Background is g:Profiler's default annotated gene set for --organism.
+# Term significance uses g:SCS, the g:Profiler default multiple-testing correction.
+# The query is gene symbols, the same identifiers gprof.py submits.
 # --prefix is prepended to output file names; default is none.
 
 ora_gprofiler_options <- function() {
@@ -14,7 +17,10 @@ ora_gprofiler_options <- function() {
     "Run GO over-representation analysis (ORA) with gprofiler2.",
     "With --direction yes, significant genes are split into up- and down-regulated sets.",
     "With --direction no, all significant genes are tested together.",
-    "All GO ontologies (BP, MF, CC) are tested against the measured-gene background.",
+    "All GO ontologies (BP, MF, CC) are tested against g:Profiler's default",
+    "annotated-gene background for the specified organism.",
+    "Term significance is corrected with g:SCS.",
+    "The query is gene symbols.",
     "",
     "Examples:",
     "  Rscript gprof_GO.R --in edger_cell_sph_vs_BHS.csv --outdir res",
@@ -109,7 +115,14 @@ ora_gprofiler_run <- function(opt) {
     }, character(1))
   }
 
-  run_gost <- function(gene_ids, background, direction) {
+  # Gene symbols match the gprof.py query. Ensembl IDs from the same table
+  # map to fewer genes in the annotated domain.
+  query_ids <- function(df) {
+    ids <- sub("\\..*$", "", as.character(df$gene_symbol))
+    unique(ids[!is.na(ids) & nzchar(ids)])
+  }
+
+  run_gost <- function(gene_ids, direction) {
     if (length(gene_ids) == 0) {
       message("Skipping ", direction, ": no significant genes at the chosen cutoffs.")
       return(NULL)
@@ -127,10 +140,9 @@ ora_gprofiler_run <- function(opt) {
       query = gene_ids,
       organism = organism,
       sources = GO_SOURCES,
-      correction_method = "fdr",
+      correction_method = "gSCS",
       user_threshold = ORA_FDR,
-      custom_bg = background,
-      domain_scope = "custom_annotated",
+      domain_scope = "annotated",
       #significant = FALSE,
       significant = TRUE,
       evcodes = TRUE,
@@ -179,7 +191,8 @@ ora_gprofiler_run <- function(opt) {
         direction = direction,
         intersection_genes = intersection_to_symbols(intersection, gene_map)
       ) %>%
-      relocate(direction, source, term_id, term_name, p_value)
+      relocate(direction, source, term_id, term_name, p_value) %>%
+      select(-any_of("query"))
   }
 
   # The input file
@@ -215,15 +228,14 @@ ora_gprofiler_run <- function(opt) {
     arrange(desc(abs(log2FoldChange))) %>%
     distinct(ensembl_gene, .keep_all = TRUE)
 
-  background <- gene_map$ensembl_gene
-
   deg_sig <- gene_map %>%
     filter(
       FDR < fdr_cutoff,
       abs(log2FoldChange) >= log2fc_cutoff
     )
 
-  message("Background genes:     ", length(background))
+  message("Background: annotated genes (", organism, ")")
+  message("Query IDs: gene symbols")
   message("Total significant DEGs: ", nrow(deg_sig))
 
   if (nrow(deg_sig) == 0) {
@@ -251,8 +263,10 @@ ora_gprofiler_run <- function(opt) {
     direction = split_direction,
     prefix = prefix,
     ora_fdr = ORA_FDR,
+    correction_method = "gSCS",
     sources = GO_SOURCES,
-    background_n = length(background)
+    domain_scope = "annotated",
+    custom_bg = NULL
   )
 
   gene_csvs <- character()
@@ -273,8 +287,8 @@ ora_gprofiler_run <- function(opt) {
     write_csv(select(down_genes, all_of(gene_cols)), down_genes_csv)
     gene_csvs <- c(up_genes_csv, down_genes_csv)
 
-    gost_up <- run_gost(up_genes$ensembl_gene, background, "up")
-    gost_down <- run_gost(down_genes$ensembl_gene, background, "down")
+    gost_up <- run_gost(query_ids(up_genes), "up")
+    gost_down <- run_gost(query_ids(down_genes), "down")
 
     result_table <- bind_rows(
       gost_to_table(gost_up, "up", gene_map),
@@ -289,7 +303,7 @@ ora_gprofiler_run <- function(opt) {
     write_csv(select(deg_sig, all_of(gene_cols)), all_genes_csv)
     gene_csvs <- all_genes_csv
 
-    gost_all <- run_gost(deg_sig$ensembl_gene, background, "none")
+    gost_all <- run_gost(query_ids(deg_sig), "none")
 
     result_table <- gost_to_table(gost_all, "none", gene_map)
     gost_res <- list(none = gost_all, params = params)
@@ -315,7 +329,7 @@ ora_gprofiler_run <- function(opt) {
   # saveRDS(gost_res, ora_rds)
 
   message("================")
-  message("GO terms (gprofiler FDR < ", ORA_FDR, ")")
+  message("GO terms (gprofiler g:SCS < ", ORA_FDR, ")")
   message("  all tested: ", nrow(result_table))
   message("  significant:")
   for (label in names(term_counts)) {

@@ -7,7 +7,7 @@
 # With --direction no (default), all significant genes are tested together.
 # Without --gmt, gene sets are MSigDB C5 GO for BP, MF, and CC.
 # --gmt supplies a custom GMT library instead.
-# The background is the set of measured genes in the DE table.
+# Background is the enricher default: every gene in the gene-set library.
 # --prefix is prepended to output file names; default is none.
 
 ora_enricher_options <- function() {
@@ -16,7 +16,8 @@ ora_enricher_options <- function() {
     description = paste(
     "Run over-representation analysis (ORA) with clusterProfiler::enricher.",
     "This is the R counterpart of gseapy.enrich: a local hypergeometric test",
-    "against a gene-set library, with the measured genes as the background.",
+    "against a gene-set library. The background is the enricher default:",
+    "every gene in that library.",
     "With --direction yes, significant genes are split into up- and down-regulated sets.",
     "With --direction no, all significant genes are tested together.",
     "Without --gmt, MSigDB GO gene sets for BP, MF, and CC are used.",
@@ -276,9 +277,9 @@ ora_enricher_run <- function(opt) {
     df %>% relocate(direction, ONTOLOGY, ID, Description, p.adjust)
   }
 
-  run_enricher <- function(gene_ids, background, sets, direction) {
+  run_enricher <- function(gene_ids, sets, direction) {
     gene_ids <- unique(gene_ids)
-    gene_ids <- gene_ids[gene_ids %in% background]
+    gene_ids <- gene_ids[!is.na(gene_ids) & nzchar(gene_ids)]
     if (length(gene_ids) == 0) {
       message("Skipping ", direction, ": no significant genes at the chosen cutoffs.")
       return(NULL)
@@ -297,7 +298,6 @@ ora_enricher_run <- function(opt) {
     tryCatch(
       enricher(
         gene = gene_ids,
-        universe = background,
         TERM2GENE = term2gene,
         TERM2NAME = term2name,
         pAdjustMethod = "BH",
@@ -404,18 +404,15 @@ ora_enricher_run <- function(opt) {
   }
 
   if (sets$id_type == "ensembl") {
-    background <- unique(gene_map$ensembl_gene)
     query_ids <- function(df) df$ensembl_gene
   } else {
-    background <- unique(toupper(gene_map$gene_symbol))
-    background <- background[!is.na(background) & nzchar(background)]
     query_ids <- function(df) {
       ids <- toupper(df$gene_symbol)
       ids[!is.na(ids) & nzchar(ids)]
     }
   }
 
-  message("Background genes:       ", length(background))
+  message("Background:             genes in the gene-set library")
   message("Total significant DEGs: ", nrow(deg_sig))
   message("Library size:           ", dplyr::n_distinct(sets$term2gene$term), " gene sets")
 
@@ -442,7 +439,7 @@ ora_enricher_run <- function(opt) {
     id_type = sets$id_type,
     minGSSize = MIN_GS_SIZE,
     maxGSSize = MAX_GS_SIZE,
-    background_n = length(background)
+    universe = NULL
   )
 
   gene_csvs <- character()
@@ -463,8 +460,8 @@ ora_enricher_run <- function(opt) {
     write_csv(select(down_genes, all_of(gene_cols)), down_genes_csv)
     gene_csvs <- c(up_genes_csv, down_genes_csv)
 
-    enrich_up <- run_enricher(query_ids(up_genes), background, sets, "up")
-    enrich_down <- run_enricher(query_ids(down_genes), background, sets, "down")
+    enrich_up <- run_enricher(query_ids(up_genes), sets, "up")
+    enrich_down <- run_enricher(query_ids(down_genes), sets, "down")
 
     result_table <- bind_rows(
       enrich_to_table(enrich_up, "up", sets$ont_map, sets$id_type, gene_map),
@@ -476,7 +473,7 @@ ora_enricher_run <- function(opt) {
     write_csv(select(deg_sig, all_of(gene_cols)), all_genes_csv)
     gene_csvs <- all_genes_csv
 
-    enrich_all <- run_enricher(query_ids(deg_sig), background, sets, "none")
+    enrich_all <- run_enricher(query_ids(deg_sig), sets, "none")
     result_table <- enrich_to_table(enrich_all, "none", sets$ont_map, sets$id_type, gene_map)
     enrich_res <- list(none = enrich_all, params = params)
   }
