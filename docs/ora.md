@@ -32,7 +32,7 @@ When --direction yes is specified, ORA is run separately on up- and down-regulat
 ## General settings for all plotting scripts
 
 - Terms with **FDR < 0.05** are retained.
-- `--ont BP`, `CC`, or `MF` plots that GO ontology. `--ont KEGG` plots KEGG ids. `--ont all` plots every GO id.
+- `--ont BP`, `CC`, or `MF` plots that GO ontology. `--ont KEGG` plots KEGG ids. `--ont all` plots every GO id. If the requested ontology is not in the table, the command prints what is present and exits.
 - The typical input is an ORA results table such as `gprofiler_GO.csv`.
 - When an `up`/`down` direction column is available, signed axes place up-regulated enrichment on the positive side and down-regulated enrichment on the negative side.
 
@@ -209,8 +209,8 @@ The database is read from the term ids, not from the file name. One id matching 
 
 `--ont` then chooses which of those ids are plotted:
 
-- `BP`, `CC`, or `MF` keeps GO ids of that ontology.
-- `KEGG` keeps KEGG ids.
-- `all` keeps every GO id and does not split them by ontology.
+- `BP`, `CC`, or `MF` keeps GO ids of that ontology. If the table lists other ontologies and not the requested one, the command prints those ontologies and exits.
+- `KEGG` keeps KEGG ids. If the table has no KEGG ids, the command exits.
+- `all` keeps every GO id and does not split them by ontology. If the table has no GO ids, the command exits.
 
 A gProfiler table often mixes GO, KEGG, transcription-factor, and pathway sources in one file. `--ont BP` plots only the GO biological-process rows. Terms with `p.adjust` missing or not below 0.05 are dropped. If none remain, the command stops and writes no file. UpSet and semantic-space plots also need `geneID`; simplifyGO needs GO ids.

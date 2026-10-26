@@ -14,7 +14,7 @@ ora_ssplot_options <- function() {
     "Semantic space plot of ORA terms from GO, KEGG, or another gene-set database using MDS.",
     "Term similarity is Jaccard overlap of genes in each term, matching ssplot() defaults.\n",
     "For GO tables, --ont BP, CC, or MF selects one ontology.",
-    "For KEGG and other non-GO tables, ontology filtering is skipped. \n",
+    "The command stops if the requested ontology is not in the table. \n",
     "Use --direction up or down to plot that subset; none plots the top N terms overall.",
     "--prefix is prepended to output file names.",
     "",

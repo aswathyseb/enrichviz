@@ -14,7 +14,7 @@ ora_barplot_options <- function() {
     "\nBarplot of top ORA terms from GO, KEGG, or another gene-set database.\n",
     "Accepts gprofiler, clusterProfiler, or fgsea tables (CSV/TSV/RDS).",
     "For GO tables, --ont BP, CC, or MF selects one ontology.",
-    "For KEGG and other non-GO tables, ontology filtering is skipped.\n",
+    "The command stops if the requested ontology is not in the table.\n",
     "Up- and down-regulated gene sets are drawn in one plot when direction is present.",
     "--prefix is prepended to output file names.",
     "",

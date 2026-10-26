@@ -13,7 +13,7 @@ gsea_lollipop_options <- function() {
     "Lollipop of top GSEA terms from GO or KEGG.",
     "Accepts fgsea or clusterProfiler tables (CSV/TSV/RDS).\n",
     "For GO tables, --ont BP, CC, or MF selects one ontology.",
-    "For KEGG tables, ontology filtering is skipped.",
+    "The command stops if the requested ontology is not in the table.",
     "Positive- and negative-NES gene sets are drawn on one plot.",
     "",
     "Examples:",

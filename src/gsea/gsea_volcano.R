@@ -14,7 +14,7 @@ gsea_volcano_options <- function() {
     "Volcano plot of GSEA terms from GO or KEGG.",
     "Accepts fgsea or clusterProfiler tables (CSV/TSV/RDS).\n",
     "For GO tables, --ont BP, CC, or MF selects one ontology.",
-    "For KEGG tables, ontology filtering is skipped.",
+    "The command stops if the requested ontology is not in the table.",
     "Plots all tested terms; labels the top N significant terms per NES direction.",
     "",
     "Examples:",

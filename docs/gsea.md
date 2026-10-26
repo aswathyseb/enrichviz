@@ -15,7 +15,7 @@ enrichviz gsea_kegg --in edger.csv --outdir gsea_out
 
 `enrichviz gsea_kegg` uses MSigDB C2 KEGG Legacy pathways by default (`--kegg legacy`, IDs such as `hsa02010`). Pass `--kegg medicus` for KEGG Medicus. Mouse datasets map human KEGG sets to mouse orthologs. clusterProfiler KEGG tables (for example `gseKEGG.csv`) can be plotted the same way.
 
-In all plotting scripts, `--ont BP|CC|MF` selects a GO ontology. KEGG results skip that filter (`--ont KEGG` or `--ont all`). Optional `--prefix NAME` is prepended to plot file names. 
+In all plotting scripts, `--ont BP|CC|MF` selects a GO ontology. KEGG results are selected with `--ont KEGG` or `--ont all`. If the requested ontology is not in the table, the command prints which terms are present and exits. Optional `--prefix NAME` is prepended to plot file names. 
 
 ## Gene ranking
 
@@ -47,7 +47,8 @@ The barplot, lollipop plot, dotplot, and ridgeplot use the same term-selection p
 
 - retain terms with **p.adjust < 0.05**;
 - for GO, analyze one ontology at a time: Biological Process (BP), Cellular Component (CC), or Molecular Function (MF);
-- for KEGG, skip ontology filtering and use all pathways in the table;
+- for KEGG, pass `--ont KEGG` or `--ont all` and use all pathways in the table;
+- if the requested ontology is not in the table, print the ontologies that are present and exit;
 - select the **top N terms separately for positive and negative NES** based on |NES|, with `-n 10` as the default.
 
 The volcano plot displays all tested terms in that same GO ontology or KEGG table and labels only the top N significant terms. Running ES plots examine one GO or KEGG term at a time (`--GO` or `--term`).
@@ -240,7 +241,7 @@ Volcano plot plots all terms as points.  `-n` controls the number of labeled ter
 
 Terms above the horizontal threshold are significant. Terms to the right have positive NES and terms to the left have negative NES. Greater horizontal distance from zero indicates stronger enrichment, while greater vertical position indicates stronger statistical significance.
 
-For GO tables, `--ont BP`, `CC`, or `MF` selects one ontology (`--ont all` keeps every GO ontology in the file). For KEGG tables, ontology filtering is skipped. If the default `--ont BP` is left in place, the script reports that BP is GO-specific and plots all KEGG pathways.
+For GO tables, `--ont BP`, `CC`, or `MF` selects one ontology (`--ont all` keeps every GO ontology in the file). For KEGG tables, pass `--ont KEGG` or `--ont all`. If the requested ontology is not in the table, the command prints which terms are present and exits.
 
 fgsea tables usually include non-significant terms, so the grey cloud below the FDR line is visible. clusterProfiler `gseKEGG` tables often contain only significant pathways, so most points sit above the line.
 
@@ -443,8 +444,8 @@ The database is read from the term ids, not from the file name. If at least half
 
 `--ont` then chooses which rows are plotted:
 
-- `BP`, `CC`, or `MF` keeps that GO ontology when an `ONTOLOGY` column contains it. If the column is empty, the requested ontology is stamped onto the table.
-- KEGG tables skip ontology filtering. `--ont` for a GO ontology is ignored and every pathway is kept.
+- `BP`, `CC`, or `MF` keeps that GO ontology when an `ONTOLOGY` column contains it. If the column lists other ontologies and not the requested one, the command prints those ontologies and exits. If the column is empty, the requested ontology is stamped onto the table.
+- `KEGG` keeps KEGG pathways. `--ont BP`, `CC`, or `MF` on a KEGG table exits instead of plotting those pathways.
 
 Overview plots (barplot, lollipop, dotplot, and ridgeplot) then keep terms with `p.adjust < 0.05`. The volcano plot keeps every tested term and uses the cutoff only to choose labels.
 

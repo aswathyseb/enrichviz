@@ -14,7 +14,7 @@ ora_upset_options <- function() {
     "\nUpset plot of gene overlap among top ORA terms from GO, KEGG, or another gene-set database.\n",
     "Accepts gprofiler, clusterProfiler, or fgsea tables (CSV/TSV/RDS).",
     "For GO tables, --ont BP, CC, or MF selects one ontology.",
-    "For KEGG and other non-GO tables, ontology filtering is skipped. \n",
+    "The command stops if the requested ontology is not in the table. \n",
     "Use --direction up or down to plot that subset; none plots the top N terms overall.",
     "--prefix is prepended to output file names.",
     "",

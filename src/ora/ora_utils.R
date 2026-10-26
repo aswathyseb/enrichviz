@@ -460,37 +460,42 @@ filter_ora_table <- function(df, ont = NULL, fdr_cutoff = 0.05) {
 
   if (requested == "KEGG") {
     if (!has_kegg) {
-      message("No KEGG ids found for --ont KEGG.")
+      stop("No KEGG ids found for --ont KEGG.", call. = FALSE)
     }
     df <- df %>% filter(is_kegg_term_id(ID))
   } else if (requested == "ALL") {
     if (has_go) {
       df <- df %>% filter(is_go_term_id(ID))
-    } else if (has_kegg) {
-      message("No GO ids found for --ont all.")
-      df <- df %>% filter(is_go_term_id(ID))
+    } else {
+      stop("No GO ids found for --ont all.", call. = FALSE)
     }
   } else if (requested %in% c("BP", "CC", "MF")) {
-    if (has_go) {
-      df <- df %>% filter(is_go_term_id(ID))
-      if ("ONTOLOGY" %in% colnames(df)) {
-        present <- unique(na.omit(df$ONTOLOGY))
-        present <- present[nzchar(present)]
-        if (requested %in% present) {
-          df <- df %>% filter(ONTOLOGY == requested)
-        } else if (length(present) > 0) {
-          message(
-            "Requested ontology ", requested,
-            " was not found; keeping ontologies present in the table: ",
-            paste(present, collapse = ", ")
-          )
-        }
+    if (!has_go) {
+      detail <- if (has_kegg) {
+        "The table contains KEGG terms."
+      } else {
+        "The table contains no GO terms."
       }
-    } else if (has_kegg) {
-      message("--ont ", requested, " is GO-specific; plotting KEGG terms.")
-      df <- df %>% filter(is_kegg_term_id(ID))
-    } else {
-      message("--ont ", requested, " is GO-specific; plotting all terms.")
+      stop(
+        "Requested ontology ", requested, " was not found. ", detail,
+        call. = FALSE
+      )
+    }
+    df <- df %>% filter(is_go_term_id(ID))
+    if ("ONTOLOGY" %in% colnames(df)) {
+      present <- unique(na.omit(df$ONTOLOGY))
+      present <- present[nzchar(present)]
+      if (requested %in% present) {
+        df <- df %>% filter(ONTOLOGY == requested)
+      } else if (length(present) > 0) {
+        stop(
+          "Requested ontology ", requested,
+          " was not found. Ontologies present in the table: ",
+          paste(present, collapse = ", "),
+          ".",
+          call. = FALSE
+        )
+      }
     }
   }
 

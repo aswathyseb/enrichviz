@@ -13,7 +13,7 @@ gsea_dotplot_options <- function() {
     "Dotplot of top GSEA terms from GO or KEGG.",
     "Accepts fgsea or clusterProfiler tables (CSV/TSV/RDS).\n",
     "For GO tables, --ont BP, CC, or MF selects one ontology.",
-    "For KEGG tables, ontology filtering is skipped.\n",
+    "The command stops if the requested ontology is not in the table.\n",
     "x is signed leading-edge ratio (leading-edge genes / set size).",
     "Positive- and negative-NES gene sets are drawn on one plot.",
     "",

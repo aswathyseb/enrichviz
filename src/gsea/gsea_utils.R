@@ -365,13 +365,16 @@ filter_gsea_table <- function(df, ont = NULL, fdr_cutoff = 0.05) {
   ont <- gsea_go_ontologies(ont)
   if (length(ont) == 1 && "ONTOLOGY" %in% colnames(df)) {
     present <- unique(na.omit(df$ONTOLOGY))
+    present <- present[nzchar(present)]
     if (ont %in% present) {
       df <- df %>% filter(ONTOLOGY == ont)
     } else if (length(present) > 0) {
-      message(
+      stop(
         "Requested ontology ", ont,
-        " was not found; keeping ontologies present in the table: ",
-        paste(present, collapse = ", ")
+        " was not found. Ontologies present in the table: ",
+        paste(present, collapse = ", "),
+        ".",
+        call. = FALSE
       )
     }
   }
@@ -406,7 +409,7 @@ read_gsea_table <- function(path) {
 }
 
 # Read any supported GSEA result and keep significant terms.
-# GO ontology filtering is applied only when BP/CC/MF is present in the table.
+# A requested BP/CC/MF ontology that is not in the table stops the command.
 read_gsea_plot_table <- function(path, ont = NULL, fdr_cutoff = 0.05) {
   prepare_gsea_for_plot(path, ont = ont, fdr_cutoff = fdr_cutoff)$df
 }
@@ -424,9 +427,10 @@ prepare_gsea_for_plot <- function(path, ont = NULL, fdr_cutoff = 0.05) {
   plot_meta <- gsea_plot_meta(gsea_all, ont = ont)
   ont_filter <- if (plot_meta$source == "GO") gsea_go_ontologies(ont) else NULL
   if (plot_meta$source != "GO" && length(gsea_go_ontologies(ont)) == 1) {
-    message(
-      "--ont ", gsea_go_ontologies(ont),
-      " is GO-specific; plotting all ", plot_meta$source, " terms."
+    stop(
+      "Requested ontology ", gsea_go_ontologies(ont),
+      " was not found. The table contains ", plot_meta$source, " terms.",
+      call. = FALSE
     )
   }
   gsea_df <- filter_gsea_table(gsea_all, ont = ont_filter, fdr_cutoff = fdr_cutoff)
